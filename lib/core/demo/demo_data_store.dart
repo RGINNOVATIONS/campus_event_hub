@@ -1,10 +1,10 @@
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/features/certificates/domain/certificate_repository.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/domain/event_repository.dart';
-import 'package:campus_pulse/features/notifications/domain/notification_repository.dart';
-import 'package:campus_pulse/features/organizer/domain/organizer_repository.dart';
-import 'package:campus_pulse/features/clubs/domain/club_repository.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event_repository.dart';
+import 'package:campus_event_hub/features/notifications/domain/notification_repository.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/clubs/domain/club_repository.dart';
 
 /// Single shared in-memory demo dataset for the whole app session.
 ///

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/features/notifications/domain/notification_dedup.dart';
+import 'package:campus_event_hub/features/notifications/domain/notification_dedup.dart';
 
 void main() {
   test('a user following both club and category is only notified once', () {

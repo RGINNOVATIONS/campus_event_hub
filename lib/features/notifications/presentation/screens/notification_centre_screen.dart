@@ -1,7 +1,7 @@
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/widgets/widgets.dart';
-import 'package:campus_pulse/features/notifications/domain/notification_repository.dart';
-import 'package:campus_pulse/features/notifications/presentation/controllers/notifications_controller.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/notifications/domain/notification_repository.dart';
+import 'package:campus_event_hub/features/notifications/presentation/controllers/notifications_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -134,7 +134,13 @@ class NotificationCentreScreen extends ConsumerWidget {
     NotificationModel n,
   ) {
     ref.read(notificationsControllerProvider.notifier).markRead(n.id);
-    if (n.eventId != null) context.push('/event/${n.eventId}');
+    if (n.eventId != null) {
+      context.push('/event/${n.eventId}');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This event is no longer available.')),
+      );
+    }
   }
 }
 
@@ -166,7 +172,7 @@ class _NotificationItem extends StatelessWidget {
         timestamp: timestamp,
         isRead: n.isRead,
         icon: Icon(icon),
-        onTap: n.eventId != null ? onTap : null,
+        onTap: onTap,
       ),
     );
   }

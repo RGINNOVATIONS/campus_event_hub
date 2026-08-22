@@ -1,7 +1,7 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/domain/event_repository.dart';
-import 'package:campus_pulse/features/favourites/domain/favourite_toggle.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event_repository.dart';
+import 'package:campus_event_hub/features/favourites/domain/favourite_toggle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final upcomingEventsProvider =
@@ -121,7 +121,12 @@ class EnrolmentsController
         state = AsyncValue.data(current);
         return null;
       },
-      err: (f) => f.message,
+      err: (f) {
+        if (f.message.contains('already enrolled')) {
+          _load();
+        }
+        return f.message;
+      },
     );
   }
 }

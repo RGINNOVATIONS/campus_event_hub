@@ -1,6 +1,6 @@
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseDeviceTokenRepository implements DeviceTokenRepository {

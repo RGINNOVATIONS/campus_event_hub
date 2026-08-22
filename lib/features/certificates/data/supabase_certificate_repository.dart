@@ -1,6 +1,6 @@
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/certificates/domain/certificate_repository.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseCertificateRepository implements CertificateRepository {

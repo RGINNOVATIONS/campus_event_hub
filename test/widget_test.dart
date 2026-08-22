@@ -1,7 +1,6 @@
-import 'package:campus_pulse/app/env.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/main.dart';
-import 'package:flutter/material.dart';
+import 'package:campus_event_hub/app/env.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,16 +9,21 @@ void main() {
     await Env.load();
   });
 
-  testWidgets('CampusPulse app boots in demo mode', (tester) async {
+  testWidgets('Campus Event Hub app boots in demo mode', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.dark,
-          home: const CampusPulseApp(),
-        ),
+        overrides: [
+          demoModeProvider.overrideWithValue(true),
+        ],
+        child: const CampusEventHubApp(),
       ),
     );
 
-    expect(find.text('CampusPulse'), findsWidgets);
+    // Give go_router a frame to push the initial route
+    await tester.pump();
+    // Give LoginScreen a frame to render
+    await tester.pump(const Duration(seconds: 1));
+    
+    expect(find.text('Campus Event Hub'), findsWidgets);
   });
 }

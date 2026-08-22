@@ -1,4 +1,4 @@
-import 'package:campus_pulse/core/result/result.dart';
+import 'package:campus_event_hub/core/result/result.dart';
 
 enum DevicePlatform { android, ios, web }
 

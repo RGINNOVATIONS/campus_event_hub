@@ -137,7 +137,7 @@ async function buildCertificatePdf(opts: {
   page.drawRectangle({ x: 0, y: 0, width: 842, height: 595, color: dark });
   page.drawRectangle({ x: 20, y: 20, width: 802, height: 555, borderColor: gold, borderWidth: 2 });
 
-  page.drawText('CampusPulse', { x: 340, y: 500, size: 22, font, color: gold });
+  page.drawText('Campus Event Hub', { x: 340, y: 500, size: 22, font, color: gold });
   page.drawText('Certificate of Participation', { x: 250, y: 450, size: 26, font, color: rgb(0.97, 0.97, 0.97) });
   page.drawText(opts.studentName, { x: 300, y: 380, size: 22, font, color: gold });
   page.drawText(`has participated in "${opts.eventTitle}"`, { x: 180, y: 340, size: 14, font: bodyFont, color: rgb(0.9, 0.9, 0.9) });

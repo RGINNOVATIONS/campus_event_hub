@@ -1,9 +1,9 @@
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/features/certificates/presentation/screens/my_certificates_screen.dart';
-import 'package:campus_pulse/features/enrolments/presentation/screens/my_events_screen.dart';
-import 'package:campus_pulse/features/events/presentation/screens/home_screen.dart';
-import 'package:campus_pulse/features/favourites/presentation/screens/favourites_screen.dart';
-import 'package:campus_pulse/features/profile/presentation/screens/profile_screen.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/features/certificates/presentation/screens/my_certificates_screen.dart';
+import 'package:campus_event_hub/features/enrolments/presentation/screens/my_events_screen.dart';
+import 'package:campus_event_hub/features/events/presentation/screens/home_screen.dart';
+import 'package:campus_event_hub/features/favourites/presentation/screens/favourites_screen.dart';
+import 'package:campus_event_hub/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class StudentShell extends StatefulWidget {

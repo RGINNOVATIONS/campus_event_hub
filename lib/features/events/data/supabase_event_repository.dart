@@ -1,8 +1,8 @@
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/domain/event_repository.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseEventRepository implements EventRepository {
@@ -82,16 +82,20 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<List<CategoryModel>>> categories() async {
     try {
-      final rows =
-          await _client.from('categories').select().eq('is_active', true);
-      return Result.ok((rows as List)
+      final rows = await _client
+          .from('categories')
+          .select()
+          .eq('is_active', true)
+          .order('name');
+      final categories = (rows as List)
           .map((r) => CategoryModel(
                 id: r['id'] as String,
                 name: r['name'] as String,
                 iconName: r['icon_name'] as String,
                 colourHex: r['colour_hex'] as String,
               ))
-          .toList());
+          .toList();
+      return Result.ok(categories);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
     }

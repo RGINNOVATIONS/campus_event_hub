@@ -1,4 +1,4 @@
-import 'package:campus_pulse/core/domain/enums.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 
 class EventModel {
   final String id;

@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/widgets/widgets.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/presentation/controllers/events_controllers.dart';
-import 'package:campus_pulse/features/organizer/domain/organizer_repository.dart';
-import 'package:campus_pulse/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
-import 'package:campus_pulse/features/organizer/presentation/screens/organizer_events_screen.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -98,20 +98,58 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     categoriesAsync.when(
-                      loading: () => const LinearProgressIndicator(),
-                      error: (_, __) => const Text('Could not load categories'),
-                      data: (categories) => DropdownButtonFormField<String>(
-                        initialValue: _categoryId,
-                        decoration:
-                            const InputDecoration(labelText: 'Category'),
-                        items: categories
-                            .map((c) => DropdownMenuItem(
-                                value: c.id, child: Text(c.name)))
-                            .toList(),
-                        onChanged: (v) => setState(() => _categoryId = v),
-                        validator: (v) =>
-                            v == null ? 'Select a category' : null,
+                      loading: () => const Row(
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Text('Loading categories...'),
+                        ],
                       ),
+                      error: (_, __) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Unable to load categories'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextButton.icon(
+                            onPressed: () => ref.invalidate(categoriesProvider),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                      data: (categories) {
+                        if (_categoryId != null &&
+                            !categories.any((c) => c.id == _categoryId)) {
+                          _categoryId = null;
+                        }
+                        if (categories.isEmpty) {
+                          return const Text('No categories available');
+                        }
+                        final selectedValue = categories.any((c) => c.id == _categoryId)
+                            ? _categoryId
+                            : null;
+                        return DropdownButtonFormField<String>(
+                          initialValue: selectedValue,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                            hintText: 'Select a category',
+                          ),
+                          items: categories
+                              .map((c) => DropdownMenuItem(
+                                  value: c.id, child: Text(c.name)))
+                              .toList(),
+                          onChanged: (v) => setState(() => _categoryId = v),
+                          validator: (v) =>
+                              (v == null || v.trim().isEmpty)
+                                  ? 'Please select a category'
+                                  : null,
+                        );
+                      },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextFormField(

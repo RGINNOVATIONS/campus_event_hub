@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/domain/event_repository.dart';
-import 'package:campus_pulse/features/favourites/presentation/screens/favourites_screen.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event_repository.dart';
+import 'package:campus_event_hub/features/favourites/presentation/screens/favourites_screen.dart';
 
 /// An EventRepository with events but zero favourites, to force the
 /// Favourites screen's empty state regardless of the shared demo seed.

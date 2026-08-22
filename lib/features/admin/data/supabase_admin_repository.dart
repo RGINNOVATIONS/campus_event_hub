@@ -1,8 +1,8 @@
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/admin/domain/admin_repository.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseAdminRepository implements AdminRepository {
@@ -131,23 +131,8 @@ class SupabaseAdminRepository implements AdminRepository {
   @override
   Future<Result<void>> approveEvent(String eventId) async {
     try {
-      final uid = _client.auth.currentUser?.id ?? '';
-      try {
-        await _client
-            .rpc('approve_event_by_admin', params: {'p_event_id': eventId});
-      } catch (_) {
-        await _client
-            .from('events')
-            .update({
-              'status': 'published',
-              'approved_by': uid,
-              'approved_at': DateTime.now().toIso8601String(),
-              'published_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', eventId)
-            .select('id')
-            .single();
-      }
+      await _client
+          .rpc('approve_event_by_admin', params: {'p_event_id': eventId});
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
@@ -157,22 +142,10 @@ class SupabaseAdminRepository implements AdminRepository {
   @override
   Future<Result<void>> rejectEvent(String eventId, String reason) async {
     try {
-      try {
-        await _client.rpc('reject_event_by_admin', params: {
-          'p_event_id': eventId,
-          'p_rejection_reason': reason,
-        });
-      } catch (_) {
-        await _client
-            .from('events')
-            .update({
-              'status': 'rejected',
-              'rejection_reason': reason,
-            })
-            .eq('id', eventId)
-            .select('id')
-            .single();
-      }
+      await _client.rpc('reject_event_by_admin', params: {
+        'p_event_id': eventId,
+        'p_rejection_reason': reason,
+      });
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));

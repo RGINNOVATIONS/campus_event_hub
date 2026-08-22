@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/attendance/domain/scan_result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseOrganizerRepository implements OrganizerRepository {
@@ -152,17 +152,8 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<void>> submitForApproval(String eventId) async {
     try {
-      try {
-        await _client
-            .rpc('submit_event_for_approval', params: {'p_event_id': eventId});
-      } catch (_) {
-        await _client
-            .from('events')
-            .update({'status': 'pending_approval'})
-            .eq('id', eventId)
-            .select('id')
-            .single();
-      }
+      await _client
+          .rpc('submit_event_for_approval', params: {'p_event_id': eventId});
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
@@ -179,7 +170,10 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
       }
       // Note: This relies on the 'events_delete_organizer' RLS policy
       // which safely enforces club ownership and status restrictions.
-      await _client.from('events').delete().eq('id', eventId);
+      final rows = await _client.from('events').delete().eq('id', eventId).select('id');
+      if (rows.isEmpty) {
+        return Result.err(const AuthorizationFailure('Event could not be deleted. It may be locked or you lack permission.'));
+      }
       return Result.ok(null);
     } catch (e) {
       return Result.err(

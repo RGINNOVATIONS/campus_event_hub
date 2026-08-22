@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/services/calendar_service.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/services/calendar_service.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 
 EventModel _event() => EventModel(
   id: 'e1',

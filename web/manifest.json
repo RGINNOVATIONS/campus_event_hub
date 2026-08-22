@@ -1,6 +1,6 @@
 {
-    "name": "campus_pulse",
-    "short_name": "campus_pulse",
+    "name": "campus_event_hub",
+    "short_name": "campus_event_hub",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

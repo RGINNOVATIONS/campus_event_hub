@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:campus_pulse/core/services/device_token_repository.dart';
-import 'package:campus_pulse/core/services/notification_service.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/services/notification_service.dart';
 
 /// Demo mode must run with zero Firebase/network calls. This still
 /// exercises the same DeviceTokenRepository interface (registering a

@@ -1,10 +1,10 @@
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/events/domain/event_repository.dart';
-import 'package:campus_pulse/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event_repository.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 
 class DemoEventRepository implements EventRepository {
   final DemoDataStore _store = DemoDataStore.instance;

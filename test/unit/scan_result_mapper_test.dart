@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/features/attendance/domain/scan_result.dart';
+import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 
 void main() {
   group('ScanResultMapper', () {

@@ -1,6 +1,6 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/features/clubs/domain/club_repository.dart';
-import 'package:campus_pulse/features/favourites/domain/favourite_toggle.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/features/clubs/domain/club_repository.dart';
+import 'package:campus_event_hub/features/favourites/domain/favourite_toggle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final verifiedClubsProvider =

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 
 void main() {
   final now = DateTime(2026, 8, 1);

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/features/clubs/data/demo_club_repository.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
 
 void main() {
   setUp(() => DemoDataStore.instance.resetForTests());

@@ -1,9 +1,9 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/widgets/widgets.dart';
-import 'package:campus_pulse/features/attendance/domain/scan_result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/organizer/presentation/screens/organizer_events_screen.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/features/admin/data/demo_admin_repository.dart';
-import 'package:campus_pulse/features/events/data/demo_event_repository.dart';
-import 'package:campus_pulse/features/organizer/data/demo_organizer_repository.dart';
-import 'package:campus_pulse/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
+import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 
 void main() {
   setUp(() => DemoDataStore.instance.resetForTests());

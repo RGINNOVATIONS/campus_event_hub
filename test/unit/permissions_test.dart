@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/domain/permissions.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/domain/permissions.dart';
 
 void main() {
   test('only admin can approve events', () {

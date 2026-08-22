@@ -5,15 +5,15 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCalendarsUsageDescription</key>
-	<string>CampusPulse needs calendar access so you can save events to your device calendar.</string>
+	<string>Campus Event Hub needs calendar access so you can save events to your device calendar.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>CampusPulse needs full calendar access so you can add and manage event reminders on your device.</string>
+	<string>Campus Event Hub needs full calendar access so you can add and manage event reminders on your device.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>CampusPulse requires camera access to scan event attendance QR codes.</string>
+	<string>Campus Event Hub requires camera access to scan event attendance QR codes.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Campus Pulse</string>
+	<string>Campus Event Hub</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>campus_pulse</string>
+	<string>Campus Event Hub</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

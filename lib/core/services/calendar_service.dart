@@ -1,6 +1,6 @@
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:device_calendar/device_calendar.dart' hide Result;
 import 'package:timezone/data/latest.dart' as tz;
 

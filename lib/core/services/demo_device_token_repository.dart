@@ -1,5 +1,5 @@
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
 
 class DemoDeviceTokenRepository implements DeviceTokenRepository {
   // token -> userId. A plain Map naturally enforces "one active token

@@ -1,4 +1,4 @@
-import 'package:campus_pulse/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
 
 /// A minimal Either-style result type. Every repository method returns
 /// this instead of throwing, so the UI layer never has to guess whether

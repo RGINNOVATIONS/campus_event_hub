@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/auth/domain/auth_repository.dart';
-import 'package:campus_pulse/features/auth/domain/profile.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/auth/domain/auth_repository.dart';
+import 'package:campus_event_hub/features/auth/domain/profile.dart';
 
 /// Seeded demo accounts. Passwords are demo-only and documented in the
 /// README "Demo-mode usage" section — never used against a real backend.
@@ -48,7 +48,7 @@ class DemoAccounts {
     createdAt: DateTime(2024, 6, 1),
   );
 
-  static const demoPassword = 'CampusPulse#Demo1';
+  static const demoPassword = 'CampusEventHub#Demo1';
 }
 
 class DemoAuthRepository implements AuthRepository {

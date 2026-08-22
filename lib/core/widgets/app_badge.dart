@@ -1,4 +1,4 @@
-import 'package:campus_pulse/app/theme.dart';
+import 'package:campus_event_hub/app/theme.dart';
 import 'package:flutter/material.dart';
 
 enum AppBadgeTone { neutral, primary, success, warning, danger }

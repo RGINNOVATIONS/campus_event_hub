@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/services/demo_device_token_repository.dart';
-import 'package:campus_pulse/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
 
 void main() {
   group('DeviceTokenRepository — lifecycle', () {

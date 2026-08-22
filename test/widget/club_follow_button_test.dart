@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/app/env.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/features/auth/data/demo_auth_repository.dart';
-import 'package:campus_pulse/features/clubs/data/demo_club_repository.dart';
-import 'package:campus_pulse/features/events/data/demo_event_repository.dart';
-import 'package:campus_pulse/features/clubs/presentation/screens/club_details_screen.dart';
+import 'package:campus_event_hub/app/env.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
+import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
+import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import 'package:campus_event_hub/features/clubs/presentation/screens/club_details_screen.dart';
 
 void main() {
   setUpAll(() async {

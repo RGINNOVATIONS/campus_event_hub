@@ -1,4 +1,4 @@
-# CampusPulse verification gate (Windows) — run this on a machine with
+# Campus Event Hub verification gate (Windows) — run this on a machine with
 # the Flutter SDK installed. It was NOT run by the assistant that built
 # this repo (no SDK in that sandbox — see TASKS.md section 0). Run it
 # yourself before treating the app as verified.

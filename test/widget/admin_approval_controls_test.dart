@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/features/admin/data/demo_admin_repository.dart';
-import 'package:campus_pulse/features/admin/presentation/screens/admin_screens.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
+import 'package:campus_event_hub/features/admin/presentation/screens/admin_screens.dart';
 
 void main() {
   setUp(() => DemoDataStore.instance.resetForTests());

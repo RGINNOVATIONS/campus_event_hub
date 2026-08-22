@@ -1,5 +1,5 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/core/errors/app_failure.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/core/errors/app_failure.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthActionState {

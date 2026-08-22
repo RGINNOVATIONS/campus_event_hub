@@ -28,7 +28,7 @@
 
 ## Certificate content
 
-CampusPulse heading, "Certificate of Participation", student full name,
+Campus Event Hub heading, "Certificate of Participation", student full name,
 event name, organizing club, event date, unique certificate code, issue
 date, and a signature line. (The spec's "verification QR code or URL" is
 implemented as the certificate code being enterable on the public

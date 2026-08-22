@@ -1,6 +1,6 @@
-name: campus_pulse
+name: campus_event_hub
 description: >
-  CampusPulse — verified college event-discovery and event-management platform.
+  Campus Event Hub — verified college event-discovery and event-management platform.
 publish_to: 'none'
 version: 0.1.0+1
 

@@ -1,4 +1,4 @@
-# CampusPulse — TASKS.md
+# Campus Event Hub — TASKS.md
 
 ## Final verification status
 

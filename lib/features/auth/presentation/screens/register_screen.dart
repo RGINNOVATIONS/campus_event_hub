@@ -1,8 +1,8 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/widgets/widgets.dart';
-import 'package:campus_pulse/features/auth/domain/profile.dart';
-import 'package:campus_pulse/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/auth/domain/profile.dart';
+import 'package:campus_event_hub/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -103,7 +103,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                         ),
                         const Text(
-                          'CampusPulse · SVKM NMIMS',
+                          'Campus Event Hub · SVKM NMIMS',
                           style: AppTextStyles.caption,
                         ),
                       ],

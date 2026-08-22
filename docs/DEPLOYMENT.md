@@ -1,6 +1,6 @@
 # Deployment
 
-End-to-end checklist for taking CampusPulse from this repo to a live
+End-to-end checklist for taking Campus Event Hub from this repo to a live
 Supabase + Firebase backend and installable builds. See `README.md` for
 the detailed version of each step; this is the ordered checklist.
 

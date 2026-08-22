@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/features/favourites/domain/favourite_toggle.dart';
+import 'package:campus_event_hub/features/favourites/domain/favourite_toggle.dart';
 
 void main() {
   test('optimistic toggle flips state immediately', () {

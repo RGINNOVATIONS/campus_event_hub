@@ -1,6 +1,6 @@
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/features/certificates/domain/certificate_repository.dart';
-import 'package:campus_pulse/core/result/result.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
+import 'package:campus_event_hub/core/result/result.dart';
 
 class DemoCertificateRepository implements CertificateRepository {
   final DemoDataStore _store = DemoDataStore.instance;

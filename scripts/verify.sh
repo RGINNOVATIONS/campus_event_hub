@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CampusPulse verification gate — run this on a machine with the Flutter
+# Campus Event Hub verification gate — run this on a machine with the Flutter
 # SDK installed. It was NOT run by the assistant that built this repo
 # (no SDK in that sandbox — see TASKS.md section 0). Run it yourself
 # before treating the app as verified.

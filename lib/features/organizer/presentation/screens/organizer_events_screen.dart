@@ -1,10 +1,10 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/domain/enums.dart';
-import 'package:campus_pulse/core/widgets/widgets.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
-import 'package:campus_pulse/features/organizer/presentation/screens/create_event_screen.dart';
-import 'package:campus_pulse/features/organizer/presentation/screens/event_management_screen.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/event_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +33,15 @@ class OrganizerEventsScreen extends ConsumerWidget {
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const CreateEventScreen(),
+          ),
+        ),
+        icon: const Icon(Icons.add),
+        label: const Text('Create Event'),
       ),
       body: eventsAsync.when(
         loading: () =>

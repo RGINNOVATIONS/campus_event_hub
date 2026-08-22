@@ -1,4 +1,4 @@
-import 'package:campus_pulse/core/domain/enums.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 
 /// Client-side permission checks used only to decide what UI to show.
 /// These are NOT the source of truth — every action they gate is also

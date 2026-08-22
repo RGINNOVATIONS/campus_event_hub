@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:campus_pulse/app/env.dart';
-import 'package:campus_pulse/core/services/device_token_repository.dart';
-import 'package:campus_pulse/core/services/notification_service.dart';
+import 'package:campus_event_hub/app/env.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -126,7 +126,7 @@ class FirebaseNotificationService implements NotificationService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     showForegroundNotification(
-      title: message.notification?.title ?? 'CampusPulse',
+      title: message.notification?.title ?? 'Campus Event Hub',
       body: message.notification?.body ?? '',
     );
   }
@@ -145,7 +145,7 @@ class FirebaseNotificationService implements NotificationService {
       body,
       const NotificationDetails(
         android:
-            AndroidNotificationDetails('campuspulse_default', 'CampusPulse'),
+            AndroidNotificationDetails('campuseventhub_default', 'Campus Event Hub'),
         iOS: DarwinNotificationDetails(),
       ),
     );

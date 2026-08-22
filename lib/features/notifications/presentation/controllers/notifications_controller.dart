@@ -1,5 +1,5 @@
-import 'package:campus_pulse/app/providers.dart';
-import 'package:campus_pulse/features/notifications/domain/notification_repository.dart';
+import 'package:campus_event_hub/app/providers.dart';
+import 'package:campus_event_hub/features/notifications/domain/notification_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NotificationsController

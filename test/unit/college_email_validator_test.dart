@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/features/auth/domain/profile.dart';
+import 'package:campus_event_hub/features/auth/domain/profile.dart';
 
 void main() {
   final domains = ['nmims.edu.in', 'campus.ac.in'];

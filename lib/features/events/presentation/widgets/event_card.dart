@@ -1,7 +1,7 @@
-import 'package:campus_pulse/app/theme.dart';
-import 'package:campus_pulse/core/widgets/app_badge.dart';
-import 'package:campus_pulse/core/widgets/event_poster_container.dart';
-import 'package:campus_pulse/features/events/domain/event.dart';
+import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/widgets/app_badge.dart';
+import 'package:campus_event_hub/core/widgets/event_poster_container.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

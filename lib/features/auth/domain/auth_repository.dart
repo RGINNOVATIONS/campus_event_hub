@@ -1,5 +1,5 @@
-import 'package:campus_pulse/core/result/result.dart';
-import 'package:campus_pulse/features/auth/domain/profile.dart';
+import 'package:campus_event_hub/core/result/result.dart';
+import 'package:campus_event_hub/features/auth/domain/profile.dart';
 
 abstract class AuthRepository {
   Stream<Profile?> watchCurrentProfile();

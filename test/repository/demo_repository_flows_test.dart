@@ -7,14 +7,14 @@
 // DemoDataStore, so a full enrol -> scan -> issue-certificate flow can
 // be tested end-to-end here even though no server was involved.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_pulse/core/demo/demo_data_store.dart';
-import 'package:campus_pulse/features/attendance/domain/scan_result.dart';
-import 'package:campus_pulse/features/certificates/data/demo_certificate_repository.dart';
-import 'package:campus_pulse/features/clubs/data/demo_club_repository.dart';
-import 'package:campus_pulse/features/events/data/demo_event_repository.dart';
-import 'package:campus_pulse/features/organizer/data/demo_organizer_repository.dart';
-import 'package:campus_pulse/core/services/demo_device_token_repository.dart';
-import 'package:campus_pulse/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
+import 'package:campus_event_hub/features/certificates/data/demo_certificate_repository.dart';
+import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
+import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
+import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
+import 'package:campus_event_hub/core/services/device_token_repository.dart';
 
 void main() {
   setUp(() => DemoDataStore.instance.resetForTests());
