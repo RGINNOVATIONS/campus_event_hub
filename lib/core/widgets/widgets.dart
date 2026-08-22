@@ -9,4 +9,5 @@ export 'error_state.dart';
 export 'event_category_chip.dart';
 export 'event_poster_container.dart';
 export 'loading_state.dart';
+export 'organizer_profile_button.dart';
 export 'section_header.dart';

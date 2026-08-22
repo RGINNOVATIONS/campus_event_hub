@@ -5,6 +5,7 @@ import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/event_management_screen.dart';
+import 'package:campus_event_hub/features/organizer/presentation/widgets/postpone_event_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -16,12 +17,16 @@ final organizerEventsProvider =
   return result.when(ok: (v) => v, err: (f) => throw f);
 });
 
+final organizerEventsFilterProvider =
+    StateProvider<EventStatus?>((ref) => null);
+
 class OrganizerEventsScreen extends ConsumerWidget {
   const OrganizerEventsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(organizerEventsProvider);
+    final currentFilter = ref.watch(organizerEventsFilterProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -29,6 +34,7 @@ class OrganizerEventsScreen extends ConsumerWidget {
         title: const Text('My Events'),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -60,37 +66,216 @@ class OrganizerEventsScreen extends ConsumerWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            itemCount: events.length,
-            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, i) {
-              final e = events[i];
-              return _OrganizerEventCard(
-                event: e,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => EventManagementScreen(event: e),
+          final publishedCount =
+              events.where((e) => e.status == EventStatus.published).length;
+          final pendingCount = events
+              .where((e) => e.status == EventStatus.pendingApproval)
+              .length;
+          final postponedCount =
+              events.where((e) => e.status == EventStatus.postponed).length;
+          final completedCount =
+              events.where((e) => e.status == EventStatus.completed).length;
+          final draftCount =
+              events.where((e) => e.status == EventStatus.draft).length;
+
+          final filteredEvents = currentFilter == null
+              ? events
+              : events.where((e) => e.status == currentFilter).toList();
+
+          return Column(
+            children: [
+              // Filter chips bar
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  border: Border(
+                    bottom: BorderSide(color: AppColors.border),
                   ),
                 ),
-                onEdit: (e.status == EventStatus.draft ||
-                        e.status == EventStatus.pendingApproval ||
-                        e.status == EventStatus.rejected)
-                    ? () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CreateEventScreen(existing: e),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterTabChip(
+                        label: 'All (${events.length})',
+                        selected: currentFilter == null,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = null,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _FilterTabChip(
+                        label: 'Published ($publishedCount)',
+                        selected: currentFilter == EventStatus.published,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = EventStatus.published,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _FilterTabChip(
+                        label: 'Pending ($pendingCount)',
+                        selected: currentFilter == EventStatus.pendingApproval,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = EventStatus.pendingApproval,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _FilterTabChip(
+                        label: 'Postponed ($postponedCount)',
+                        selected: currentFilter == EventStatus.postponed,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = EventStatus.postponed,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _FilterTabChip(
+                        label: 'Completed ($completedCount)',
+                        selected: currentFilter == EventStatus.completed,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = EventStatus.completed,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _FilterTabChip(
+                        label: 'Drafts ($draftCount)',
+                        selected: currentFilter == EventStatus.draft,
+                        onTap: () => ref
+                            .read(organizerEventsFilterProvider.notifier)
+                            .state = EventStatus.draft,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Events list or empty filtered state
+              Expanded(
+                child: filteredEvents.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                alignment: Alignment.center,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.surfaceElevated,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.filter_alt_off_outlined,
+                                  color: AppColors.textMuted,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              const Text(
+                                'No events found in this category',
+                                style: AppTextStyles.title,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              const Text(
+                                'No events match the selected status filter.',
+                                style: AppTextStyles.bodySecondary,
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              AppSecondaryButton(
+                                label: 'Show All Events',
+                                onPressed: () => ref
+                                    .read(
+                                        organizerEventsFilterProvider.notifier)
+                                    .state = null,
+                              ),
+                            ],
                           ),
-                        )
-                    : null,
-                onDelete: (e.status == EventStatus.draft ||
-                        e.status == EventStatus.pendingApproval ||
-                        e.status == EventStatus.rejected)
-                    ? () => _confirmAndDelete(context, ref, e)
-                    : null,
-              );
-            },
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: filteredEvents.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.md),
+                        itemBuilder: (context, i) {
+                          final e = filteredEvents[i];
+                          return _OrganizerEventCard(
+                            event: e,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => EventManagementScreen(event: e),
+                              ),
+                            ),
+                            onEdit: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CreateEventScreen(existing: e),
+                              ),
+                            ),
+                            onDelete: () => _confirmAndDelete(context, ref, e),
+                            onPostpone: (e.status == EventStatus.published ||
+                                    e.status == EventStatus.postponed)
+                                ? () => PostponeEventDialog.show(context, e)
+                                : null,
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _FilterTabChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterTabChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.full,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs + 2,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : AppColors.surfaceElevated,
+            borderRadius: AppRadius.full,
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : AppColors.border,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? AppColors.textOnPrimary : AppColors.textSecondary,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -151,14 +336,16 @@ Future<void> _confirmAndDelete(
 class _OrganizerEventCard extends StatelessWidget {
   final EventModel event;
   final VoidCallback onTap;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback? onPostpone;
 
   const _OrganizerEventCard({
     required this.event,
     required this.onTap,
-    this.onEdit,
-    this.onDelete,
+    required this.onEdit,
+    required this.onDelete,
+    this.onPostpone,
   });
 
   @override
@@ -182,7 +369,7 @@ class _OrganizerEventCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: Category chip & Status badge
+              // Header: Category chip, Status badge & More Popup
               Row(
                 children: [
                   AppBadge(
@@ -191,9 +378,87 @@ class _OrganizerEventCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   _StatusBadge(status: event.status),
+                  const SizedBox(width: AppSpacing.xs),
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
+                    padding: EdgeInsets.zero,
+                    color: AppColors.surface,
+                    shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
+                    onSelected: (val) {
+                      switch (val) {
+                        case 'manage':
+                          onTap();
+                          break;
+                        case 'edit':
+                          onEdit();
+                          break;
+                        case 'postpone':
+                          onPostpone?.call();
+                          break;
+                        case 'delete':
+                          onDelete();
+                          break;
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'manage',
+                        child: Row(
+                          children: [
+                            Icon(Icons.dashboard_customize_outlined,
+                                size: 18, color: AppColors.textPrimary),
+                            SizedBox(width: AppSpacing.sm),
+                            Text('Manage Event'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined,
+                                size: 18, color: AppColors.textPrimary),
+                            SizedBox(width: AppSpacing.sm),
+                            Text('Edit Event'),
+                          ],
+                        ),
+                      ),
+                      if (onPostpone != null)
+                        const PopupMenuItem(
+                          value: 'postpone',
+                          child: Row(
+                            children: [
+                              Icon(Icons.update_rounded,
+                                  size: 18, color: AppColors.warning),
+                              SizedBox(width: AppSpacing.sm),
+                              Text('Postpone Event'),
+                            ],
+                          ),
+                        ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline_rounded,
+                                size: 18, color: AppColors.danger),
+                            SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'Delete Event',
+                              style: TextStyle(color: AppColors.danger),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
 
               // Title
               Text(
@@ -237,6 +502,49 @@ class _OrganizerEventCard extends StatelessWidget {
                 ],
               ),
 
+              // Postponed notice
+              if (event.status == EventStatus.postponed) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.sm,
+                    border: Border.all(
+                      color: AppColors.warning.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.update_rounded,
+                        color: AppColors.warning,
+                        size: 16,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          event.postponementReason != null &&
+                                  event.postponementReason!.isNotEmpty
+                              ? 'Postponed: ${event.postponementReason}'
+                              : 'Event has been rescheduled.',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.warning,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Rejection alert callout
               if (event.status == EventStatus.rejected &&
                   event.rejectionReason != null) ...[
@@ -278,76 +586,88 @@ class _OrganizerEventCard extends StatelessWidget {
               const Divider(height: 1, color: AppColors.border),
               const SizedBox(height: AppSpacing.md),
 
-              // Manage link
-              Row(
+              // Action Buttons Row: [Manage] [Edit] [Postpone] [Delete]
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
                 children: [
-                  Text(
-                    'Manage Event',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  const Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 14,
+                  _CardActionButton(
+                    icon: Icons.dashboard_customize_outlined,
+                    label: 'Manage',
                     color: AppColors.primary,
+                    onTap: onTap,
                   ),
-                  const Spacer(),
-                  if (onEdit != null)
-                    InkWell(
-                      onTap: onEdit,
-                      borderRadius: AppRadius.sm,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: AppColors.textPrimary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Edit',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  _CardActionButton(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit',
+                    color: AppColors.textPrimary,
+                    onTap: onEdit,
+                  ),
+                  if (onPostpone != null)
+                    _CardActionButton(
+                      icon: Icons.update_rounded,
+                      label: 'Postpone',
+                      color: AppColors.warning,
+                      onTap: onPostpone!,
                     ),
-                  if (onDelete != null)
-                    InkWell(
-                      onTap: onDelete,
-                      borderRadius: AppRadius.sm,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.delete_outline_rounded,
-                              size: 14,
-                              color: AppColors.danger,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(
-                              'Delete',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.danger,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  _CardActionButton(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Delete',
+                    color: AppColors.danger,
+                    onTap: onDelete,
+                  ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _CardActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.sm,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.xs + 2,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated,
+            borderRadius: AppRadius.sm,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -372,6 +692,11 @@ class _StatusBadge extends StatelessWidget {
         tone = AppBadgeTone.success;
         label = 'Published';
         icon = Icons.check_circle_outline;
+        break;
+      case EventStatus.postponed:
+        tone = AppBadgeTone.warning;
+        label = 'Postponed';
+        icon = Icons.update_rounded;
         break;
       case EventStatus.pendingApproval:
         tone = AppBadgeTone.warning;

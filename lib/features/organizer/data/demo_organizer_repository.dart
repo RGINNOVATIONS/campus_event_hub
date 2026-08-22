@@ -60,16 +60,17 @@ class DemoOrganizerRepository implements OrganizerRepository {
       (c) => c.id == input.categoryId,
       orElse: () => _store.categories.first,
     );
+    final existing = input.id != null ? _store.eventById(input.id!) : null;
     final event = EventModel(
       id: input.id ?? _store.newEventId(),
-      clubId: _demoOrganizerClubId,
-      clubName: 'Robotics & Automation Club',
+      clubId: existing?.clubId ?? _demoOrganizerClubId,
+      clubName: existing?.clubName ?? 'Robotics & Automation Club',
       categoryId: category.id,
       categoryName: category.name,
       title: input.title,
       shortDescription: input.shortDescription,
       fullDescription: input.fullDescription,
-      posterPath: input.posterPath,
+      posterPath: input.posterPath ?? existing?.posterPath,
       venue: input.venue,
       startAt: input.startAt,
       endAt: input.endAt,
@@ -80,8 +81,10 @@ class DemoOrganizerRepository implements OrganizerRepository {
       contactName: input.contactName,
       contactEmail: input.contactEmail,
       contactPhone: input.contactPhone,
-      status: EventStatus.draft,
-      createdByUserId: _uid,
+      status: existing?.status ?? EventStatus.draft,
+      rejectionReason: existing?.rejectionReason,
+      postponementReason: existing?.postponementReason,
+      createdByUserId: existing?.createdByUserId ?? _uid,
     );
     _store.upsertEvent(event);
     return Result.ok(event);
@@ -96,14 +99,41 @@ class DemoOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<Result<void>> postponeEvent({
+    required String eventId,
+    required DateTime startAt,
+    required DateTime endAt,
+    required DateTime registrationDeadline,
+    required String reason,
+  }) async {
+    final e = _store.eventById(eventId);
+    if (e == null) return Result.err(const UnknownFailure('Event not found.'));
+    final validation = EventDateValidator.validate(
+      start: startAt,
+      end: endAt,
+      registrationDeadline: registrationDeadline,
+      now: DateTime.now(),
+    );
+    if (validation != null) {
+      return Result.err(ValidationFailure(validation));
+    }
+    final updated = e.copyWith(
+      startAt: startAt,
+      endAt: endAt,
+      registrationDeadline: registrationDeadline,
+      postponementReason: reason,
+      status: EventStatus.postponed,
+    );
+    _store.upsertEvent(updated);
+    return Result.ok(null);
+  }
+
+  @override
   Future<Result<void>> deleteEvent(String eventId) async {
     final e = _store.eventById(eventId);
     if (e == null) return Result.err(const UnknownFailure('Event not found.'));
     if (e.clubId != _demoOrganizerClubId) {
       return Result.err(const AuthorizationFailure('You cannot delete this event.'));
-    }
-    if (e.status == EventStatus.published || e.status == EventStatus.completed || e.status == EventStatus.cancelled) {
-      return Result.err(const AuthorizationFailure('Event cannot be deleted in its current state.'));
     }
     _store.events.removeWhere((x) => x.id == eventId);
     _store.registrationsByEvent.remove(eventId);

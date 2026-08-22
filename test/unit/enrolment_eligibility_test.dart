@@ -80,5 +80,21 @@ void main() {
         isFalse,
       );
     });
+
+    test('published event before deadline can be enrolled in', () {
+      expect(
+        EnrolmentEligibility.canEnrol(
+            event: _event(status: EventStatus.published), now: now),
+        isTrue,
+      );
+    });
+
+    test('postponed event before new deadline can be enrolled in', () {
+      expect(
+        EnrolmentEligibility.canEnrol(
+            event: _event(status: EventStatus.postponed), now: now),
+        isTrue,
+      );
+    });
   });
 }

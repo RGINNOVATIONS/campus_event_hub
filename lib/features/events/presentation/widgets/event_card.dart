@@ -1,4 +1,5 @@
 import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/widgets/app_badge.dart';
 import 'package:campus_event_hub/core/widgets/event_poster_container.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
@@ -52,9 +53,21 @@ class EventCard extends StatelessWidget {
                   Positioned(
                     left: AppSpacing.md,
                     top: AppSpacing.md,
-                    child: AppBadge(
-                      label: event.categoryName,
-                      tone: AppBadgeTone.primary,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppBadge(
+                          label: event.categoryName,
+                          tone: AppBadgeTone.primary,
+                        ),
+                        if (event.status == EventStatus.postponed) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          const AppBadge(
+                            label: 'Postponed',
+                            tone: AppBadgeTone.warning,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   if (showFavouriteButton)

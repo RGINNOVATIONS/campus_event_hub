@@ -1,5 +1,6 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ final organizerDashboardProvider =
 class OrganizerDashboardScreen extends ConsumerWidget {
   final VoidCallback onCreateEvent;
   final VoidCallback onScanAttendance;
-  final VoidCallback onMyEvents;
+  final void Function([EventStatus? filter]) onMyEvents;
   const OrganizerDashboardScreen(
       {super.key,
       required this.onCreateEvent,
@@ -33,6 +34,7 @@ class OrganizerDashboardScreen extends ConsumerWidget {
         title: const Text('Organizer Dashboard'),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -143,31 +145,31 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                         value: '${counts.totalEvents}',
                         icon: const Icon(Icons.event_note_rounded),
                         filled: true,
-                        onTap: onMyEvents,
+                        onTap: () => onMyEvents(null),
                       ),
                       AppStatCard(
                         title: 'Pending Review',
                         value: '${counts.pendingApprovals}',
                         icon: const Icon(Icons.hourglass_top_rounded),
-                        onTap: onMyEvents,
+                        onTap: () => onMyEvents(EventStatus.pendingApproval),
                       ),
                       AppStatCard(
                         title: 'Published',
                         value: '${counts.published}',
                         icon: const Icon(Icons.campaign_rounded),
-                        onTap: onMyEvents,
+                        onTap: () => onMyEvents(EventStatus.published),
                       ),
                       AppStatCard(
                         title: 'Completed',
                         value: '${counts.completed}',
                         icon: const Icon(Icons.task_alt_rounded),
-                        onTap: onMyEvents,
+                        onTap: () => onMyEvents(EventStatus.completed),
                       ),
                       AppStatCard(
                         title: 'Registrations',
                         value: '${counts.totalRegistrations}',
                         icon: const Icon(Icons.people_alt_outlined),
-                        onTap: onMyEvents,
+                        onTap: () => onMyEvents(EventStatus.published),
                       ),
                       AppStatCard(
                         title: 'Attendees Checked In',

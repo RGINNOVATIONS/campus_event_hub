@@ -14,7 +14,9 @@ class DemoEventRepository implements EventRepository {
   @override
   Future<Result<List<EventModel>>> upcomingPublishedEvents() async {
     final published = _store.events
-        .where((e) => e.status == EventStatus.published)
+        .where((e) =>
+            e.status == EventStatus.published ||
+            e.status == EventStatus.postponed)
         .toList()
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
     return Result.ok(published);

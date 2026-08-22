@@ -74,6 +74,13 @@ abstract class OrganizerRepository {
   Future<Result<List<EventModel>>> myClubEvents();
   Future<Result<EventModel>> saveDraft(DraftEventInput input);
   Future<Result<void>> submitForApproval(String eventId);
+  Future<Result<void>> postponeEvent({
+    required String eventId,
+    required DateTime startAt,
+    required DateTime endAt,
+    required DateTime registrationDeadline,
+    required String reason,
+  });
   Future<Result<void>> deleteEvent(String eventId);
   Future<Result<List<RegistrationRow>>> registrationsFor(String eventId);
   Future<Result<ScanOutcome>> scanAttendance(

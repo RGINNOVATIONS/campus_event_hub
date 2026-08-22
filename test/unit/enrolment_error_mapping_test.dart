@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() {
   group('mapExceptionToFailure PostgrestException mapping', () {
     test('duplicate enrollment error code 23505 maps to ValidationFailure with friendly message', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'duplicate key value violates unique constraint "enrolments_event_id_user_id_key"',
         code: '23505',
       );
@@ -15,7 +15,7 @@ void main() {
     });
 
     test('already enrolled message maps to ValidationFailure with friendly message', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'You are already enrolled in this event.',
         code: 'P0001',
       );
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('registration closed message maps to ValidationFailure', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'Registration for this event has closed.',
         code: 'P0001',
       );
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('event not open message maps to ValidationFailure', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'This event is not open for registration.',
         code: 'P0001',
       );
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('event already started message maps to ValidationFailure', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'This event has already started.',
         code: 'P0001',
       );
@@ -55,7 +55,7 @@ void main() {
     });
 
     test('event not found message maps to ValidationFailure', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'Event not found.',
         code: 'P0001',
       );
@@ -65,7 +65,7 @@ void main() {
     });
 
     test('RLS permission denied code 42501 maps to AuthorizationFailure', () {
-      final exception = PostgrestException(
+      const exception = PostgrestException(
         message: 'permission denied for table enrolments',
         code: '42501',
       );

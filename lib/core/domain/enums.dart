@@ -22,7 +22,8 @@ enum EventStatus {
   published,
   rejected,
   cancelled,
-  completed
+  completed,
+  postponed
 }
 
 extension EventStatusX on EventStatus {
@@ -30,6 +31,8 @@ extension EventStatusX on EventStatus {
     switch (value) {
       case 'pending_approval':
         return EventStatus.pendingApproval;
+      case 'postponed':
+        return EventStatus.postponed;
       default:
         return EventStatus.values.firstWhere(
           (s) => s.name == value,
@@ -42,6 +45,8 @@ extension EventStatusX on EventStatus {
     switch (this) {
       case EventStatus.pendingApproval:
         return 'pending_approval';
+      case EventStatus.postponed:
+        return 'postponed';
       default:
         return name;
     }

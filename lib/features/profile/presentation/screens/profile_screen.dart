@@ -191,14 +191,16 @@ class ProfileScreen extends ConsumerWidget {
                                   .push('/student/notification-preferences'),
                             ),
 
-                          // Notifications
-                          _ProfileActionTile(
-                            icon: Icons.notifications_outlined,
-                            label: 'Notifications',
-                            subtitle: 'View your notification feed',
-                            onTap: () => context.push('/student/notifications'),
-                            isLast: true,
-                          ),
+                          // Notifications (student only)
+                          if (isStudent)
+                            _ProfileActionTile(
+                              icon: Icons.notifications_outlined,
+                              label: 'Notifications',
+                              subtitle: 'View your notification feed',
+                              onTap: () =>
+                                  context.push('/student/notifications'),
+                              isLast: true,
+                            ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),

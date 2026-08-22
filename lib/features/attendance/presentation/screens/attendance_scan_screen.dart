@@ -10,7 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class AttendanceScanScreen extends ConsumerStatefulWidget {
-  const AttendanceScanScreen({super.key});
+  final EventModel? initialEvent;
+  const AttendanceScanScreen({super.key, this.initialEvent});
 
   @override
   ConsumerState<AttendanceScanScreen> createState() =>
@@ -24,6 +25,12 @@ class _AttendanceScanScreenState extends ConsumerState<AttendanceScanScreen> {
   bool _busy = false;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedEvent = widget.initialEvent;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(organizerEventsProvider);
 
@@ -33,6 +40,7 @@ class _AttendanceScanScreenState extends ConsumerState<AttendanceScanScreen> {
         title: const Text('Scan Attendance'),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -73,6 +81,7 @@ class _AttendanceScanScreenState extends ConsumerState<AttendanceScanScreen> {
                       ),
                       data: (events) => DropdownButtonFormField<EventModel>(
                         initialValue: _selectedEvent,
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Select Active Event',
                           prefixIcon:

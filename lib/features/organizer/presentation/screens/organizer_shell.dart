@@ -1,29 +1,29 @@
 import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/features/attendance/presentation/screens/attendance_scan_screen.dart';
-import 'package:campus_event_hub/features/events/presentation/screens/home_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
-import 'package:campus_event_hub/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OrganizerShell extends StatefulWidget {
+class OrganizerShell extends ConsumerStatefulWidget {
   const OrganizerShell({super.key});
   @override
-  State<OrganizerShell> createState() => _OrganizerShellState();
+  ConsumerState<OrganizerShell> createState() => _OrganizerShellState();
 }
 
-class _OrganizerShellState extends State<OrganizerShell> {
+class _OrganizerShellState extends ConsumerState<OrganizerShell> {
   int _index = 0;
 
-  void _goCreateEvent() {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const CreateEventScreen()));
-  }
+  void _goCreateEvent() => setState(() => _index = 2);
 
   void _goScan() => setState(() => _index = 3);
 
-  void _goMyEvents() => setState(() => _index = 2);
+  void _goMyEvents([EventStatus? filter]) {
+    ref.read(organizerEventsFilterProvider.notifier).state = filter;
+    setState(() => _index = 1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,33 +33,32 @@ class _OrganizerShellState extends State<OrganizerShell> {
         onScanAttendance: _goScan,
         onMyEvents: _goMyEvents,
       ),
-      const HomeScreen(),
       const OrganizerEventsScreen(),
+      const CreateEventScreen(),
       const AttendanceScanScreen(),
-      const ProfileScreen(),
     ];
 
     const destinations = [
       NavigationDestination(
-          icon: Icon(Icons.dashboard_outlined),
-          selectedIcon: Icon(Icons.dashboard),
-          label: 'Dashboard'),
+        icon: Icon(Icons.dashboard_outlined),
+        selectedIcon: Icon(Icons.dashboard),
+        label: 'Dashboard',
+      ),
       NavigationDestination(
-          icon: Icon(Icons.explore_outlined),
-          selectedIcon: Icon(Icons.explore),
-          label: 'Campus'),
+        icon: Icon(Icons.event_note_outlined),
+        selectedIcon: Icon(Icons.event_note),
+        label: 'My Events',
+      ),
       NavigationDestination(
-          icon: Icon(Icons.event_note_outlined),
-          selectedIcon: Icon(Icons.event_note),
-          label: 'My Events'),
+        icon: Icon(Icons.add_circle_outline_rounded),
+        selectedIcon: Icon(Icons.add_circle_rounded),
+        label: 'Create Event',
+      ),
       NavigationDestination(
-          icon: Icon(Icons.qr_code_scanner_outlined),
-          selectedIcon: Icon(Icons.qr_code_scanner),
-          label: 'Scan'),
-      NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Profile'),
+        icon: Icon(Icons.qr_code_scanner_outlined),
+        selectedIcon: Icon(Icons.qr_code_scanner),
+        label: 'Scan',
+      ),
     ];
 
     final isWide = MediaQuery.of(context).size.width >= AppBreakpoints.desktop;

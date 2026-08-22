@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
@@ -69,6 +70,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         title: Text(widget.existing == null ? 'Create Event' : 'Edit Event'),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -343,24 +345,35 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 const SizedBox(height: AppSpacing.xl),
 
                 // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppSecondaryButton(
-                        label: 'Save Draft',
-                        onPressed: _saving ? null : () => _save(submit: false),
+                if (widget.existing != null &&
+                    (widget.existing!.status == EventStatus.published ||
+                        widget.existing!.status == EventStatus.postponed ||
+                        widget.existing!.status == EventStatus.pendingApproval))
+                  AppPrimaryButton(
+                    label: 'Save Changes',
+                    isLoading: _saving,
+                    fullWidth: true,
+                    onPressed: _saving ? null : () => _save(submit: false),
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppSecondaryButton(
+                          label: 'Save Draft',
+                          onPressed: _saving ? null : () => _save(submit: false),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: AppPrimaryButton(
-                        label: 'Submit for Approval',
-                        isLoading: _saving,
-                        onPressed: _saving ? null : () => _save(submit: true),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: AppPrimaryButton(
+                          label: 'Submit for Approval',
+                          isLoading: _saving,
+                          onPressed: _saving ? null : () => _save(submit: true),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
                 const SizedBox(height: AppSpacing.xxl),
               ],
@@ -454,7 +467,29 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
         ref.invalidate(organizerEventsProvider);
         ref.invalidate(organizerDashboardProvider);
-        if (mounted) Navigator.of(context).pop();
+        if (widget.existing != null) {
+          ref.invalidate(eventByIdProvider(widget.existing!.id));
+        }
+        ref.invalidate(upcomingEventsProvider);
+        if (mounted) {
+          final String msg;
+          if (submit) {
+            msg = 'Event submitted for approval!';
+          } else if (widget.existing != null) {
+            msg = 'Event updated successfully!';
+          } else {
+            msg = 'Event draft saved successfully!';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(msg),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        }
       },
       err: (f) async => setState(() => _error = f.message),
     );

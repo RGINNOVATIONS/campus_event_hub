@@ -41,6 +41,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
         contactPhone: row['contact_phone'] as String?,
         status: EventStatusX.fromDb(row['status'] as String),
         rejectionReason: row['rejection_reason'] as String?,
+        postponementReason: row['postponement_reason'] as String?,
       );
 
   Future<List<EventModel>> _resolvePosters(List<EventModel> events) async {
@@ -84,18 +85,35 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   Future<Result<OrganizerDashboardCounts>> dashboardCounts() async {
     final eventsResult = await myClubEvents();
     return eventsResult.when(
-      ok: (events) => Result.ok(OrganizerDashboardCounts(
-        totalEvents: events.length,
-        pendingApprovals:
-            events.where((e) => e.status == EventStatus.pendingApproval).length,
-        published:
-            events.where((e) => e.status == EventStatus.published).length,
-        completed:
-            events.where((e) => e.status == EventStatus.completed).length,
-        totalRegistrations:
-            0, // Summed lazily per-event via registrationsFor() in the UI.
-        totalAttendees: 0,
-      )),
+      ok: (events) async {
+        int totalReg = 0;
+        int totalAttended = 0;
+        try {
+          final clubId = await _callerClubId();
+          if (clubId != null) {
+            final regRows = await _client
+                .from('enrolments')
+                .select('attendance_status, events!inner(club_id)')
+                .eq('events.club_id', clubId);
+            totalReg = (regRows as List).length;
+            totalAttended = regRows
+                .where((r) => r['attendance_status'] == 'attended')
+                .length;
+          }
+        } catch (_) {}
+
+        return Result.ok(OrganizerDashboardCounts(
+          totalEvents: events.length,
+          pendingApprovals:
+              events.where((e) => e.status == EventStatus.pendingApproval).length,
+          published:
+              events.where((e) => e.status == EventStatus.published).length,
+          completed:
+              events.where((e) => e.status == EventStatus.completed).length,
+          totalRegistrations: totalReg,
+          totalAttendees: totalAttended,
+        ));
+      },
       err: (f) => Result.err(f),
     );
   }
@@ -109,43 +127,92 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
         return Result.err(const AuthorizationFailure(
             'You are not a verified organizer for any club.'));
       }
-      final payload = {
-        'club_id': clubId,
-        'category_id': input.categoryId,
-        'title': input.title,
-        'short_description': input.shortDescription,
-        'full_description': input.fullDescription,
-        'poster_path': input.posterPath,
-        'venue': input.venue,
-        'start_at': input.startAt.toIso8601String(),
-        'end_at': input.endAt.toIso8601String(),
-        'registration_deadline': input.registrationDeadline.toIso8601String(),
-        'eligibility': input.eligibility,
-        'rules': input.rules,
-        'fee_text': input.feeText,
-        'contact_name': input.contactName,
-        'contact_email': input.contactEmail,
-        'contact_phone': input.contactPhone,
-        'created_by': uid,
-        'status': 'draft',
-      };
-      final row = input.id == null
-          ? await _client
+
+      if (input.id == null) {
+        final payload = {
+          'club_id': clubId,
+          'category_id': input.categoryId,
+          'title': input.title,
+          'short_description': input.shortDescription,
+          'full_description': input.fullDescription,
+          'poster_path': input.posterPath,
+          'venue': input.venue,
+          'start_at': input.startAt.toIso8601String(),
+          'end_at': input.endAt.toIso8601String(),
+          'registration_deadline': input.registrationDeadline.toIso8601String(),
+          'eligibility': input.eligibility,
+          'rules': input.rules,
+          'fee_text': input.feeText,
+          'contact_name': input.contactName,
+          'contact_email': input.contactEmail,
+          'contact_phone': input.contactPhone,
+          'created_by': uid,
+          'status': 'draft',
+        };
+        final row = await _client
+            .from('events')
+            .insert(payload)
+            .select(_eventSelect)
+            .single();
+        final resolved = await _resolvePosters([_mapRow(row)]);
+        return Result.ok(resolved.first);
+      } else {
+        // Update existing event without overwriting existing status
+        try {
+          final row = await _client.rpc('update_event_by_organizer', params: {
+            'p_event_id': input.id!,
+            'p_title': input.title,
+            'p_short_description': input.shortDescription,
+            'p_full_description': input.fullDescription,
+            'p_category_id': input.categoryId,
+            'p_venue': input.venue,
+            'p_start_at': input.startAt.toIso8601String(),
+            'p_end_at': input.endAt.toIso8601String(),
+            'p_registration_deadline':
+                input.registrationDeadline.toIso8601String(),
+            'p_poster_path': input.posterPath,
+            'p_eligibility': input.eligibility,
+            'p_rules': input.rules,
+            'p_fee_text': input.feeText,
+            'p_contact_name': input.contactName,
+            'p_contact_email': input.contactEmail,
+            'p_contact_phone': input.contactPhone,
+          });
+          final resolved = await _resolvePosters([_mapRow(row as Map<String, dynamic>)]);
+          return Result.ok(resolved.first);
+        } catch (_) {
+          // Direct table update fallback
+          final updatePayload = {
+            'category_id': input.categoryId,
+            'title': input.title,
+            'short_description': input.shortDescription,
+            'full_description': input.fullDescription,
+            'poster_path': input.posterPath,
+            'venue': input.venue,
+            'start_at': input.startAt.toIso8601String(),
+            'end_at': input.endAt.toIso8601String(),
+            'registration_deadline':
+                input.registrationDeadline.toIso8601String(),
+            'eligibility': input.eligibility,
+            'rules': input.rules,
+            'fee_text': input.feeText,
+            'contact_name': input.contactName,
+            'contact_email': input.contactEmail,
+            'contact_phone': input.contactPhone,
+          };
+          final row = await _client
               .from('events')
-              .insert(payload)
-              .select(_eventSelect)
-              .single()
-          : await _client
-              .from('events')
-              .update(payload)
+              .update(updatePayload)
               .eq('id', input.id!)
               .select(_eventSelect)
               .single();
-      final resolved = await _resolvePosters([_mapRow(row)]);
-      return Result.ok(resolved.first);
+          final resolved = await _resolvePosters([_mapRow(row)]);
+          return Result.ok(resolved.first);
+        }
+      }
     } catch (e) {
       return Result.err(
-          mapExceptionToFailure(e, fallbackMessage: 'Could not save draft.'));
+          mapExceptionToFailure(e, fallbackMessage: 'Could not save event.'));
     }
   }
 
@@ -161,6 +228,47 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   }
 
   @override
+  Future<Result<void>> postponeEvent({
+    required String eventId,
+    required DateTime startAt,
+    required DateTime endAt,
+    required DateTime registrationDeadline,
+    required String reason,
+  }) async {
+    try {
+      try {
+        await _client.rpc('postpone_event_by_organizer', params: {
+          'p_event_id': eventId,
+          'p_start_at': startAt.toIso8601String(),
+          'p_end_at': endAt.toIso8601String(),
+          'p_registration_deadline': registrationDeadline.toIso8601String(),
+          'p_postponement_reason': reason,
+        });
+        return Result.ok(null);
+      } catch (_) {
+        // Direct table update fallback
+        final updatePayload = {
+          'start_at': startAt.toIso8601String(),
+          'end_at': endAt.toIso8601String(),
+          'registration_deadline': registrationDeadline.toIso8601String(),
+          'postponement_reason': reason,
+          'status': 'postponed',
+        };
+        await _client
+            .from('events')
+            .update(updatePayload)
+            .eq('id', eventId)
+            .select('id')
+            .single();
+        return Result.ok(null);
+      }
+    } catch (e) {
+      return Result.err(
+          mapExceptionToFailure(e, fallbackMessage: 'Could not postpone event.'));
+    }
+  }
+
+  @override
   Future<Result<void>> deleteEvent(String eventId) async {
     try {
       final clubId = await _callerClubId();
@@ -168,13 +276,19 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
         return Result.err(const AuthorizationFailure(
             'You are not a verified organizer for any club.'));
       }
-      // Note: This relies on the 'events_delete_organizer' RLS policy
-      // which safely enforces club ownership and status restrictions.
-      final rows = await _client.from('events').delete().eq('id', eventId).select('id');
-      if (rows.isEmpty) {
-        return Result.err(const AuthorizationFailure('Event could not be deleted. It may be locked or you lack permission.'));
+      try {
+        await _client.rpc('delete_event_by_organizer', params: {
+          'p_event_id': eventId,
+        });
+        return Result.ok(null);
+      } catch (_) {
+        // Fallback to direct delete
+        final rows = await _client.from('events').delete().eq('id', eventId).select('id');
+        if (rows.isEmpty) {
+          return Result.err(const AuthorizationFailure('Event could not be deleted. It may be locked or you lack permission.'));
+        }
+        return Result.ok(null);
       }
-      return Result.ok(null);
     } catch (e) {
       return Result.err(
           mapExceptionToFailure(e, fallbackMessage: 'Could not delete event.'));

@@ -22,6 +22,7 @@ class EventModel {
   final String? contactPhone;
   final EventStatus status;
   final String? rejectionReason;
+  final String? postponementReason;
   final String? createdByUserId;
 
   const EventModel({
@@ -46,6 +47,7 @@ class EventModel {
     this.contactPhone,
     required this.status,
     this.rejectionReason,
+    this.postponementReason,
     this.createdByUserId,
   });
 
@@ -71,6 +73,7 @@ class EventModel {
     String? contactPhone,
     EventStatus? status,
     String? rejectionReason,
+    String? postponementReason,
     String? createdByUserId,
   }) {
     return EventModel(
@@ -95,6 +98,7 @@ class EventModel {
       contactPhone: contactPhone ?? this.contactPhone,
       status: status ?? this.status,
       rejectionReason: rejectionReason ?? this.rejectionReason,
+      postponementReason: postponementReason ?? this.postponementReason,
       createdByUserId: createdByUserId ?? this.createdByUserId,
     );
   }
@@ -137,7 +141,8 @@ class EnrolmentEligibility {
 
   /// Whether a new enrolment may be created at all right now.
   static bool canEnrol({required EventModel event, required DateTime now}) {
-    return event.status == EventStatus.published &&
+    return (event.status == EventStatus.published ||
+            event.status == EventStatus.postponed) &&
         now.isBefore(event.registrationDeadline) &&
         now.isBefore(event.startAt);
   }

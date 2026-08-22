@@ -253,7 +253,55 @@ class _EventSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppBadge(label: event.categoryName, tone: AppBadgeTone.primary),
+          Row(
+            children: [
+              AppBadge(label: event.categoryName, tone: AppBadgeTone.primary),
+              if (event.status == EventStatus.postponed) ...[
+                const SizedBox(width: AppSpacing.sm),
+                const AppBadge(
+                  label: 'Postponed',
+                  tone: AppBadgeTone.warning,
+                  icon: Icon(Icons.update_rounded, size: 13),
+                ),
+              ],
+            ],
+          ),
+          if (event.status == EventStatus.postponed &&
+              event.postponementReason != null &&
+              event.postponementReason!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.12),
+                borderRadius: AppRadius.sm,
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.update_rounded,
+                    color: AppColors.warning,
+                    size: 16,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      'Rescheduled: ${event.postponementReason}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           Text(event.title, style: AppTextStyles.headline),
           const SizedBox(height: AppSpacing.md),

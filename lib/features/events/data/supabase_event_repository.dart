@@ -38,6 +38,7 @@ class SupabaseEventRepository implements EventRepository {
         contactPhone: row['contact_phone'] as String?,
         status: EventStatusX.fromDb(row['status'] as String),
         rejectionReason: row['rejection_reason'] as String?,
+        postponementReason: row['postponement_reason'] as String?,
       );
 
   Future<List<EventModel>> _resolvePosters(List<EventModel> events) async {
@@ -67,7 +68,7 @@ class SupabaseEventRepository implements EventRepository {
       final rows = await _client
           .from('events')
           .select(_eventSelect)
-          .eq('status', 'published')
+          .inFilter('status', ['published', 'postponed'])
           .order('start_at');
       final mapped = (rows as List)
           .map((r) => _mapRow(r as Map<String, dynamic>))

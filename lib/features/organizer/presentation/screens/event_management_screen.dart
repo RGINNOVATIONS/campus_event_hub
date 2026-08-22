@@ -2,12 +2,17 @@ import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/attendance/presentation/screens/attendance_scan_screen.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
+import 'package:campus_event_hub/features/organizer/presentation/widgets/postpone_event_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class EventManagementScreen extends ConsumerStatefulWidget {
   final EventModel event;
@@ -19,29 +24,37 @@ class EventManagementScreen extends ConsumerStatefulWidget {
 }
 
 class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
+  late EventModel _currentEvent;
   List<RegistrationRow>? _registrations;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
+    _currentEvent = widget.event;
     _load();
   }
 
   Future<void> _load() async {
     final repo = ref.read(organizerRepositoryProvider);
-    final result = await repo.registrationsFor(widget.event.id);
+    final result = await repo.registrationsFor(_currentEvent.id);
     if (mounted) setState(() => _registrations = result.valueOrNull ?? []);
   }
 
   @override
   Widget build(BuildContext context) {
-    final event = widget.event;
+    final event = _currentEvent;
     final totalCount = _registrations?.length ?? 0;
     final attendedCount = _registrations
             ?.where((r) => r.attendanceStatus == AttendanceStatus.attended)
             .length ??
         0;
+    final dateFmt = DateFormat('EEE, d MMM yyyy · h:mm a');
+
+    final canPostpone = event.status == EventStatus.published ||
+        event.status == EventStatus.postponed;
+    final canScan = event.status == EventStatus.published ||
+        event.status == EventStatus.postponed;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -49,6 +62,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
         title: Text(event.title),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -86,16 +100,84 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    event.venue,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    event.shortDescription,
+                    style: AppTextStyles.bodySecondary,
                   ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Event Metadata Rows
+                  _DetailRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Schedule',
+                    value:
+                        '${dateFmt.format(event.startAt)} — ${DateFormat('h:mm a').format(event.endAt)}',
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  _DetailRow(
+                    icon: Icons.location_on_outlined,
+                    label: 'Venue',
+                    value: event.venue,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  _DetailRow(
+                    icon: Icons.timer_outlined,
+                    label: 'Deadline',
+                    value: dateFmt.format(event.registrationDeadline),
+                  ),
+
+                  // Postponed Highlight Callout
+                  if (event.status == EventStatus.postponed) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.12),
+                        borderRadius: AppRadius.sm,
+                        border: Border.all(
+                          color: AppColors.warning.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.update_rounded,
+                                color: AppColors.warning,
+                                size: 18,
+                              ),
+                              SizedBox(width: AppSpacing.xs),
+                              Text(
+                                'Event Rescheduled',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.warning,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (event.postponementReason != null &&
+                              event.postponementReason!.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Reason: ${event.postponementReason}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
 
                   // Rejection Box
                   if (event.status == EventStatus.rejected &&
                       event.rejectionReason != null) ...[
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
@@ -134,61 +216,70 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                               color: AppColors.danger,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.md),
-                          AppSecondaryButton(
-                            label: 'Edit & Resubmit Event',
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            iconPosition: AppButtonIconPosition.left,
-                            fullWidth: true,
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    CreateEventScreen(existing: event),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          AppSecondaryButton(
-                            label: 'Delete Event',
-                            icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.danger),
-                            iconPosition: AppButtonIconPosition.left,
-                            fullWidth: true,
-                            onPressed: _busy ? null : () => _confirmAndDelete(context),
-                          ),
                         ],
                       ),
                     ),
-                  ] else if (event.status == EventStatus.draft ||
-                      event.status == EventStatus.pendingApproval) ...[
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppSecondaryButton(
-                            label: 'Edit Event',
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            iconPosition: AppButtonIconPosition.left,
-                            fullWidth: true,
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => CreateEventScreen(existing: event),
-                              ),
+                  ],
+
+                  const SizedBox(height: AppSpacing.lg),
+                  const Divider(height: 1, color: AppColors.border),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Comprehensive Management Action Bar
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: [
+                      AppSecondaryButton(
+                        label: 'Edit Event',
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        iconPosition: AppButtonIconPosition.left,
+                        onPressed: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  CreateEventScreen(existing: event),
+                            ),
+                          );
+                          _refreshCurrentEvent();
+                        },
+                      ),
+                      if (canPostpone)
+                        AppSecondaryButton(
+                          label: 'Postpone Event',
+                          icon: const Icon(Icons.update_rounded,
+                              size: 16, color: AppColors.warning),
+                          iconPosition: AppButtonIconPosition.left,
+                          onPressed: () async {
+                            final postponed = await PostponeEventDialog.show(
+                                context, event);
+                            if (postponed == true) {
+                              _refreshCurrentEvent();
+                            }
+                          },
+                        ),
+                      if (canScan)
+                        AppSecondaryButton(
+                          label: 'Scan Attendance',
+                          icon: const Icon(Icons.qr_code_scanner_rounded,
+                              size: 16, color: AppColors.primary),
+                          iconPosition: AppButtonIconPosition.left,
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AttendanceScanScreen(initialEvent: event),
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: AppSecondaryButton(
-                            label: 'Delete',
-                            icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.danger),
-                            iconPosition: AppButtonIconPosition.left,
-                            fullWidth: true,
-                            onPressed: _busy ? null : () => _confirmAndDelete(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      AppSecondaryButton(
+                        label: 'Delete Event',
+                        icon: const Icon(Icons.delete_outline_rounded,
+                            size: 16, color: AppColors.danger),
+                        iconPosition: AppButtonIconPosition.left,
+                        onPressed: _busy ? null : () => _confirmAndDelete(context),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -343,7 +434,8 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
           const SizedBox(height: AppSpacing.lg),
 
           // 4. Lifecycle Actions (Mark Completed / Issue Certificates)
-          if (event.status == EventStatus.published)
+          if (event.status == EventStatus.published ||
+              event.status == EventStatus.postponed)
             AppPrimaryButton(
               label: 'Mark Event Completed',
               icon: const Icon(Icons.task_alt_rounded, size: 18),
@@ -404,6 +496,15 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     );
   }
 
+  Future<void> _refreshCurrentEvent() async {
+    final eventRes =
+        await ref.read(eventRepositoryProvider).eventById(_currentEvent.id);
+    if (mounted && eventRes.valueOrNull != null) {
+      setState(() => _currentEvent = eventRes.valueOrNull!);
+    }
+    _load();
+  }
+
   Future<void> _confirmAndComplete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -433,9 +534,20 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     setState(() => _busy = true);
     await ref
         .read(organizerRepositoryProvider)
-        .markEventCompleted(widget.event.id);
+        .markEventCompleted(_currentEvent.id);
     ref.invalidate(organizerEventsProvider);
-    if (context.mounted) Navigator.of(context).pop();
+    ref.invalidate(organizerDashboardProvider);
+    ref.invalidate(upcomingEventsProvider);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Event marked as completed.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      _refreshCurrentEvent();
+      setState(() => _busy = false);
+    }
   }
 
   Future<void> _confirmAndDelete(BuildContext context) async {
@@ -448,7 +560,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
         ),
         title: const Text('Delete Event?'),
         content: Text(
-          'Are you sure you want to delete "${widget.event.title}"? This action cannot be undone.',
+          'Are you sure you want to delete "${_currentEvent.title}"? This action cannot be undone.',
           style: AppTextStyles.bodySecondary,
         ),
         actions: [
@@ -467,12 +579,14 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     setState(() => _busy = true);
     final result = await ref
         .read(organizerRepositoryProvider)
-        .deleteEvent(widget.event.id);
+        .deleteEvent(_currentEvent.id);
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
       ok: (_) {
         ref.invalidate(organizerEventsProvider);
+        ref.invalidate(organizerDashboardProvider);
+        ref.invalidate(upcomingEventsProvider);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -496,7 +610,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     setState(() => _busy = true);
     final result = await ref
         .read(organizerRepositoryProvider)
-        .issueCertificates(widget.event.id);
+        .issueCertificates(_currentEvent.id);
     if (!mounted) return;
     setState(() => _busy = false);
     result.when(
@@ -516,6 +630,44 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
   }
 }
 
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          '$label: ',
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _StatusBadge extends StatelessWidget {
   final EventStatus status;
   const _StatusBadge({required this.status});
@@ -529,6 +681,10 @@ class _StatusBadge extends StatelessWidget {
       case EventStatus.published:
         tone = AppBadgeTone.success;
         label = 'Published';
+        break;
+      case EventStatus.postponed:
+        tone = AppBadgeTone.warning;
+        label = 'Postponed';
         break;
       case EventStatus.pendingApproval:
         tone = AppBadgeTone.warning;

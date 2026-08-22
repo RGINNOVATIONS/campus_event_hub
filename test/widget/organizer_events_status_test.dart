@@ -68,6 +68,15 @@ class _MultiEventOrganizerRepo implements OrganizerRepository {
   Future<Result<void>> submitForApproval(String eventId) async =>
       throw UnimplementedError();
   @override
+  Future<Result<void>> postponeEvent({
+    required String eventId,
+    required DateTime startAt,
+    required DateTime endAt,
+    required DateTime registrationDeadline,
+    required String reason,
+  }) async =>
+      throw UnimplementedError();
+  @override
   Future<Result<void>> deleteEvent(String eventId) async =>
       throw UnimplementedError();
   @override
@@ -97,8 +106,13 @@ void main() {
   });
 
   testWidgets(
-      'organizer sees Edit and Delete actions for draft, pending and rejected events, but not published',
+      'organizer sees Manage, Edit, and Delete actions for owned events and Postpone for published',
       (tester) async {
+    tester.view.physicalSize = const Size(1200, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -111,9 +125,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The screen should have 4 events. Three of them should have an "Edit" button and a "Delete" button.
-    // The total number of "Edit" buttons on the screen should be 3.
-    expect(find.text('Edit'), findsNWidgets(3));
-    expect(find.text('Delete'), findsNWidgets(3));
+    // The screen has 4 events: all 4 have Manage, Edit, Delete; published has Postpone
+    expect(find.text('Manage'), findsNWidgets(4));
+    expect(find.text('Edit'), findsNWidgets(4));
+    expect(find.text('Delete'), findsNWidgets(4));
+    expect(find.text('Postpone'), findsOneWidget);
   });
 }
