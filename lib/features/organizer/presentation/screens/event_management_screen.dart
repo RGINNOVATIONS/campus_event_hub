@@ -26,6 +26,7 @@ class EventManagementScreen extends ConsumerStatefulWidget {
 class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
   late EventModel _currentEvent;
   List<RegistrationRow>? _registrations;
+  String? _registrationsError;
   bool _busy = false;
 
   @override
@@ -36,9 +37,21 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
   }
 
   Future<void> _load() async {
+    setState(() => _registrationsError = null);
     final repo = ref.read(organizerRepositoryProvider);
     final result = await repo.registrationsFor(_currentEvent.id);
-    if (mounted) setState(() => _registrations = result.valueOrNull ?? []);
+    if (mounted) {
+      result.when(
+        ok: (list) => setState(() {
+          _registrations = list;
+          _registrationsError = null;
+        }),
+        err: (f) => setState(() {
+          _registrations = null;
+          _registrationsError = f.message;
+        }),
+      );
+    }
   }
 
   @override
@@ -68,10 +81,12 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          // 1. Event Status Overview Card
+      body: RefreshIndicator(
+        onRefresh: () async => _refreshCurrentEvent(),
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            // 1. Event Status Overview Card
           Material(
             color: AppColors.surface,
             shape: RoundedRectangleBorder(
@@ -339,7 +354,52 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                   const SizedBox(height: AppSpacing.md),
                   const Divider(height: 1, color: AppColors.border),
                   const SizedBox(height: AppSpacing.sm),
-                  if (_registrations == null)
+                  if (_registrationsError != null)
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: AppColors.dangerBg,
+                              borderRadius: AppRadius.sm,
+                              border: Border.all(
+                                color: AppColors.danger.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: AppColors.danger,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    _registrationsError!,
+                                    style: const TextStyle(
+                                      color: AppColors.danger,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          AppSecondaryButton(
+                            label: 'Retry Loading',
+                            icon: const Icon(Icons.refresh_rounded, size: 16),
+                            iconPosition: AppButtonIconPosition.left,
+                            onPressed: _load,
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (_registrations == null)
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.xl),
                       child: LoadingState(message: 'Loading registrations...'),
@@ -365,6 +425,11 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                         final r = _registrations![i];
                         final isAttended =
                             r.attendanceStatus == AttendanceStatus.attended;
+                        final displayName = r.studentName.trim().isNotEmpty
+                            ? r.studentName.trim()
+                            : (r.userId.length > 8
+                                ? 'Student (${r.userId.substring(0, 8)})'
+                                : 'Student');
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(
@@ -398,7 +463,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      r.studentName,
+                                      displayName,
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -407,7 +472,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'ID: ${r.userId}',
+                                      'User ID: ${r.userId}',
                                       style: AppTextStyles.caption.copyWith(
                                         color: AppColors.textMuted,
                                       ),
@@ -493,7 +558,8 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
           const SizedBox(height: AppSpacing.xxl),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Future<void> _refreshCurrentEvent() async {

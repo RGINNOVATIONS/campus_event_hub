@@ -97,40 +97,65 @@ class _FavouritesScreenState extends ConsumerState<FavouritesScreen> {
                                   'Try a different event name, venue, club, or category.',
                             )
                           else
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final width = constraints.maxWidth;
-                                final crossAxisCount =
-                                    width >= AppBreakpoints.wide
-                                        ? 3
-                                        : width >= AppBreakpoints.tablet
-                                            ? 2
-                                            : 1;
-                                return GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    mainAxisExtent: 380,
-                                    crossAxisSpacing: AppSpacing.lg,
-                                    mainAxisSpacing: AppSpacing.lg,
-                                  ),
-                                  itemCount: filtered.length,
-                                  itemBuilder: (context, i) {
-                                    final event = filtered[i];
-                                    return EventCard(
-                                      event: event,
-                                      isFavourite: true,
-                                      onTap: () =>
-                                          context.push('/event/${event.id}'),
-                                      onToggleFavourite: () => ref
-                                          .read(favouritesProvider.notifier)
-                                          .toggle(event.id),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSpacing.xxl,
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final width = constraints.maxWidth;
+                                  if (width < AppBreakpoints.tablet) {
+                                    return ListView.separated(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: filtered.length,
+                                      separatorBuilder: (context, _) =>
+                                          const SizedBox(
+                                              height: AppSpacing.lg),
+                                      itemBuilder: (context, i) {
+                                        final event = filtered[i];
+                                        return EventCard(
+                                          event: event,
+                                          isFavourite: true,
+                                          onTap: () => context
+                                              .push('/event/${event.id}'),
+                                          onToggleFavourite: () => ref
+                                              .read(favouritesProvider.notifier)
+                                              .toggle(event.id),
+                                        );
+                                      },
                                     );
-                                  },
-                                );
-                              },
+                                  }
+                                  final crossAxisCount =
+                                      width >= AppBreakpoints.wide ? 3 : 2;
+                                  return GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      mainAxisExtent: 440,
+                                      crossAxisSpacing: AppSpacing.lg,
+                                      mainAxisSpacing: AppSpacing.lg,
+                                    ),
+                                    itemCount: filtered.length,
+                                    itemBuilder: (context, i) {
+                                      final event = filtered[i];
+                                      return EventCard(
+                                        event: event,
+                                        isFavourite: true,
+                                        onTap: () => context
+                                            .push('/event/${event.id}'),
+                                        onToggleFavourite: () => ref
+                                            .read(favouritesProvider.notifier)
+                                            .toggle(event.id),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ),
                         ],
                       ),

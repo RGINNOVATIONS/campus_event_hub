@@ -3,6 +3,7 @@ import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -277,6 +278,10 @@ class _AttendanceScanScreenState extends ConsumerState<AttendanceScanScreen> {
     final result =
         await repo.scanAttendance(eventId: _selectedEvent!.id, qrToken: token);
     if (!mounted) return;
+    if (result.isOk && result.valueOrNull == ScanOutcome.success) {
+      ref.invalidate(organizerDashboardProvider);
+      ref.invalidate(organizerEventsProvider);
+    }
     setState(() {
       _busy = false;
       _lastResult = result.when(

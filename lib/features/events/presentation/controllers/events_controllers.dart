@@ -51,6 +51,8 @@ class FavouritesController extends StateNotifier<AsyncValue<Set<String>>> {
     _load();
   }
 
+  Future<void> refresh() => _load();
+
   Future<void> _load() async {
     final repo = _ref.read(eventRepositoryProvider);
     final result = await repo.favouriteEventIds();
@@ -101,6 +103,8 @@ class EnrolmentsController
   EnrolmentsController(this._ref) : super(const AsyncValue.loading()) {
     _load();
   }
+
+  Future<void> refresh() => _load();
 
   Future<void> _load() async {
     final repo = _ref.read(eventRepositoryProvider);

@@ -16,7 +16,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
       'id, club_id, category_id, title, short_description, full_description, poster_path, '
       'venue, start_at, end_at, registration_deadline, eligibility, rules, fee_text, '
       'contact_name, contact_email, contact_phone, status, rejection_reason, '
-      'clubs(name), categories(name)';
+      'clubs!club_id(name), categories!category_id(name)';
 
   EventModel _mapRow(Map<String, dynamic> row) => EventModel(
         id: row['id'] as String,
@@ -68,9 +68,14 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<List<EventModel>>> myClubEvents() async {
     try {
+      final clubIds = await _callerClubIds();
+      if (clubIds.isEmpty) {
+        return Result.ok([]);
+      }
       final rows = await _client
           .from('events')
           .select(_eventSelect)
+          .inFilter('club_id', clubIds)
           .order('created_at', ascending: false);
       final mapped = (rows as List)
           .map((r) => _mapRow(r as Map<String, dynamic>))
@@ -86,28 +91,45 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     final eventsResult = await myClubEvents();
     return eventsResult.when(
       ok: (events) async {
+        if (events.isEmpty) {
+          return Result.ok(const OrganizerDashboardCounts(
+            totalEvents: 0,
+            pendingApprovals: 0,
+            published: 0,
+            completed: 0,
+            totalRegistrations: 0,
+            totalAttendees: 0,
+          ));
+        }
+
         int totalReg = 0;
         int totalAttended = 0;
         try {
-          final clubId = await _callerClubId();
-          if (clubId != null) {
-            final regRows = await _client
-                .from('enrolments')
-                .select('attendance_status, events!inner(club_id)')
-                .eq('events.club_id', clubId);
-            totalReg = (regRows as List).length;
-            totalAttended = regRows
-                .where((r) => r['attendance_status'] == 'attended')
-                .length;
-          }
-        } catch (_) {}
+          final eventIds = events.map((e) => e.id).toList();
+          final regRows = await _client
+              .from('enrolments')
+              .select('attendance_status')
+              .inFilter('event_id', eventIds);
+          final list = regRows as List;
+          totalReg = list.length;
+          totalAttended = list
+              .where((r) => r['attendance_status'] == 'attended')
+              .length;
+        } catch (e) {
+          return Result.err(mapExceptionToFailure(e,
+              fallbackMessage: 'Could not load registration counts.'));
+        }
 
         return Result.ok(OrganizerDashboardCounts(
           totalEvents: events.length,
-          pendingApprovals:
-              events.where((e) => e.status == EventStatus.pendingApproval).length,
-          published:
-              events.where((e) => e.status == EventStatus.published).length,
+          pendingApprovals: events
+              .where((e) => e.status == EventStatus.pendingApproval)
+              .length,
+          published: events
+              .where((e) =>
+                  e.status == EventStatus.published ||
+                  e.status == EventStatus.postponed)
+              .length,
           completed:
               events.where((e) => e.status == EventStatus.completed).length,
           totalRegistrations: totalReg,
@@ -121,7 +143,10 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<EventModel>> saveDraft(DraftEventInput input) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final clubId = await _callerClubId();
       if (clubId == null) {
         return Result.err(const AuthorizationFailure(
@@ -300,7 +325,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     try {
       final rows = await _client
           .from('enrolments')
-          .select('user_id, attendance_status, profiles(full_name)')
+          .select('user_id, attendance_status, profiles!user_id(full_name)')
           .eq('event_id', eventId);
       return Result.ok((rows as List)
           .map((r) => RegistrationRow(
@@ -311,7 +336,8 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
               ))
           .toList());
     } catch (e) {
-      return Result.err(mapExceptionToFailure(e));
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Could not load registrations.'));
     }
   }
 
@@ -353,9 +379,15 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     try {
       final response = await _client.functions
           .invoke('issue-certificates', body: {'event_id': eventId});
-      final results = (response.data as Map)['results'] as List? ?? [];
-      final issued = results.where((r) => r['status'] == 'issued').length;
-      return Result.ok(issued);
+      if (response.data is Map) {
+        final dataMap = response.data as Map;
+        final results = dataMap['results'] as List? ?? [];
+        final issued = results
+            .where((r) => r is Map && r['status'] == 'issued')
+            .length;
+        return Result.ok(issued);
+      }
+      return Result.ok(0);
     } catch (e) {
       return Result.err(
           const CertificateFailure('Could not issue certificates.'));
@@ -388,16 +420,25 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     }
   }
 
-  Future<String?> _callerClubId() async {
+  Future<List<String>> _callerClubIds() async {
     final uid = _client.auth.currentUser?.id;
-    if (uid == null) return null;
-    final row = await _client
-        .from('club_members')
-        .select('club_id')
-        .eq('user_id', uid)
-        .eq('is_verified', true)
-        .limit(1)
-        .maybeSingle();
-    return row?['club_id'] as String?;
+    if (uid == null) return [];
+    try {
+      final rows = await _client
+          .from('club_members')
+          .select('club_id')
+          .eq('user_id', uid)
+          .eq('is_verified', true);
+      return (rows as List)
+          .map((r) => r['club_id'] as String)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<String?> _callerClubId() async {
+    final ids = await _callerClubIds();
+    return ids.isNotEmpty ? ids.first : null;
   }
 }

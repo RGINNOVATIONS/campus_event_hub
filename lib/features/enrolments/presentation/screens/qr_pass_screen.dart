@@ -15,9 +15,8 @@ class QrPassScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventByIdProvider(eventId));
-    final enrolments = ref.watch(enrolmentsProvider).valueOrNull ?? {};
+    final enrolmentsAsync = ref.watch(enrolmentsProvider);
     final profile = ref.watch(currentProfileProvider).valueOrNull;
-    final enrolment = enrolments[eventId];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -34,16 +33,30 @@ class QrPassScreen extends ConsumerWidget {
         loading: () => const LoadingState(message: 'Loading your pass...'),
         error: (e, _) => ErrorState(
           message: 'Could not load this pass.',
-          onRetry: () => ref.invalidate(eventByIdProvider(eventId)),
+          onRetry: () {
+            ref.invalidate(eventByIdProvider(eventId));
+            ref.read(enrolmentsProvider.notifier).refresh();
+          },
         ),
         data: (event) {
-          if (enrolment == null) {
-            return const EmptyState(
-              icon: Icon(Icons.confirmation_number_outlined),
-              title: 'Not registered',
-              description: 'You are not registered for this event.',
-            );
-          }
+          return enrolmentsAsync.when(
+            loading: () => const LoadingState(message: 'Loading your pass...'),
+            error: (e, _) => ErrorState(
+              message: 'Could not load your registration for this pass.',
+              onRetry: () {
+                ref.invalidate(eventByIdProvider(eventId));
+                ref.read(enrolmentsProvider.notifier).refresh();
+              },
+            ),
+            data: (enrolments) {
+              final enrolment = enrolments[eventId];
+              if (enrolment == null) {
+                return const EmptyState(
+                  icon: Icon(Icons.confirmation_number_outlined),
+                  title: 'Not registered',
+                  description: 'You are not registered for this event.',
+                );
+              }
 
           final isAttended =
               enrolment.attendanceStatus == AttendanceStatus.attended;
@@ -250,6 +263,8 @@ class QrPassScreen extends ConsumerWidget {
                 ),
               ),
             ),
+              );
+            },
           );
         },
       ),

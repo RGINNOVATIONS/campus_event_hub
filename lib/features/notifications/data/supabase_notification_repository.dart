@@ -20,7 +20,10 @@ class SupabaseNotificationRepository implements NotificationRepository {
   @override
   Future<Result<List<NotificationModel>>> myNotifications() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('notifications')
           .select()
@@ -48,7 +51,10 @@ class SupabaseNotificationRepository implements NotificationRepository {
   @override
   Future<Result<void>> markAllRead() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('notifications')
           .update({'is_read': true})

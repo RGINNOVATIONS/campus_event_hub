@@ -19,6 +19,7 @@ class _CertificateVerifyScreenState
     extends ConsumerState<CertificateVerifyScreen> {
   final _codeController = TextEditingController();
   CertificateVerification? _result;
+  String? _error;
   bool _loading = false;
   bool _searched = false;
 
@@ -44,6 +45,7 @@ class _CertificateVerifyScreenState
     setState(() {
       _loading = true;
       _searched = true;
+      _error = null;
     });
 
     final repo = ref.read(certificateRepositoryProvider);
@@ -52,7 +54,16 @@ class _CertificateVerifyScreenState
     if (!mounted) return;
     setState(() {
       _loading = false;
-      _result = result.valueOrNull;
+      result.when(
+        ok: (v) {
+          _result = v;
+          _error = null;
+        },
+        err: (f) {
+          _result = null;
+          _error = f.message;
+        },
+      );
     });
   }
 
@@ -136,6 +147,7 @@ class _CertificateVerifyScreenState
                                       _codeController.clear();
                                       setState(() {
                                         _result = null;
+                                        _error = null;
                                         _searched = false;
                                       });
                                     },
@@ -162,6 +174,48 @@ class _CertificateVerifyScreenState
                 ),
 
                 const SizedBox(height: AppSpacing.lg),
+
+                // Error card
+                if (_searched && !_loading && _error != null)
+                  Material(
+                    color: AppColors.dangerBg,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                          color: AppColors.error.withValues(alpha: 0.3)),
+                      borderRadius: AppRadius.lg,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              color: AppColors.error, size: 24),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Verification Error',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  _error!,
+                                  style: AppTextStyles.bodySecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                 // Result card
                 if (_searched && !_loading && _result != null)

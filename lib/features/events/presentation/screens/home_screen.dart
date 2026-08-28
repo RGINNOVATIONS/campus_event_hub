@@ -84,9 +84,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       body: RefreshIndicator(
+        color: AppColors.primary,
         onRefresh: () async {
           ref.invalidate(upcomingEventsProvider);
           ref.invalidate(categoriesProvider);
+          await ref.read(favouritesProvider.notifier).refresh();
         },
         child: eventsAsync.when(
           loading: () =>
@@ -195,24 +197,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: contentWidth),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
+                        padding: const EdgeInsets.only(
+                          left: AppSpacing.lg,
+                          right: AppSpacing.lg,
+                          bottom: AppSpacing.xxl,
                         ),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final width = constraints.maxWidth;
-                            final crossAxisCount = width >= AppBreakpoints.wide
-                                ? 3
-                                : width >= AppBreakpoints.tablet
-                                    ? 2
-                                    : 1;
+                            if (width < AppBreakpoints.tablet) {
+                              return ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: filtered.length,
+                                separatorBuilder: (context, _) =>
+                                    const SizedBox(height: AppSpacing.lg),
+                                itemBuilder: (context, i) {
+                                  final event = filtered[i];
+                                  return EventCard(
+                                    event: event,
+                                    isFavourite: favIds.contains(event.id),
+                                    showFavouriteButton:
+                                        profile?.role == UserRole.student,
+                                    onTap: () =>
+                                        context.push('/event/${event.id}'),
+                                    onToggleFavourite: () => ref
+                                        .read(favouritesProvider.notifier)
+                                        .toggle(event.id),
+                                  );
+                                },
+                              );
+                            }
+                            final crossAxisCount =
+                                width >= AppBreakpoints.wide ? 3 : 2;
                             return GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
-                                mainAxisExtent: 380,
+                                mainAxisExtent: 440,
                                 crossAxisSpacing: AppSpacing.lg,
                                 mainAxisSpacing: AppSpacing.lg,
                               ),
@@ -222,7 +246,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 return EventCard(
                                   event: event,
                                   isFavourite: favIds.contains(event.id),
-                                  showFavouriteButton: profile?.role == UserRole.student,
+                                  showFavouriteButton:
+                                      profile?.role == UserRole.student,
                                   onTap: () =>
                                       context.push('/event/${event.id}'),
                                   onToggleFavourite: () => ref

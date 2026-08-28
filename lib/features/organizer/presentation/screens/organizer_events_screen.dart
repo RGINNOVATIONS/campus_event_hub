@@ -155,76 +155,85 @@ class OrganizerEventsScreen extends ConsumerWidget {
 
               // Events list or empty filtered state
               Expanded(
-                child: filteredEvents.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xl),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                alignment: Alignment.center,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.surfaceElevated,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.filter_alt_off_outlined,
-                                  color: AppColors.textMuted,
-                                  size: 28,
-                                ),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(organizerEventsProvider);
+                  },
+                  child: filteredEvents.isEmpty
+                      ? ListView(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(AppSpacing.xxl),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.surfaceElevated,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.filter_alt_off_outlined,
+                                      color: AppColors.textMuted,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  const Text(
+                                    'No events found in this category',
+                                    style: AppTextStyles.title,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  const Text(
+                                    'No events match the selected status filter.',
+                                    style: AppTextStyles.bodySecondary,
+                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+                                  AppSecondaryButton(
+                                    label: 'Show All Events',
+                                    onPressed: () => ref
+                                        .read(organizerEventsFilterProvider
+                                            .notifier)
+                                        .state = null,
+                                  ),
+                                ],
                               ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          itemCount: filteredEvents.length,
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: AppSpacing.md),
-                              const Text(
-                                'No events found in this category',
-                                style: AppTextStyles.title,
+                          itemBuilder: (context, i) {
+                            final e = filteredEvents[i];
+                            return _OrganizerEventCard(
+                              event: e,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      EventManagementScreen(event: e),
+                                ),
                               ),
-                              const SizedBox(height: AppSpacing.xs),
-                              const Text(
-                                'No events match the selected status filter.',
-                                style: AppTextStyles.bodySecondary,
+                              onEdit: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CreateEventScreen(existing: e),
+                                ),
                               ),
-                              const SizedBox(height: AppSpacing.lg),
-                              AppSecondaryButton(
-                                label: 'Show All Events',
-                                onPressed: () => ref
-                                    .read(
-                                        organizerEventsFilterProvider.notifier)
-                                    .state = null,
-                              ),
-                            ],
-                          ),
+                              onDelete: () =>
+                                  _confirmAndDelete(context, ref, e),
+                              onPostpone: (e.status == EventStatus.published ||
+                                      e.status == EventStatus.postponed)
+                                  ? () => PostponeEventDialog.show(context, e)
+                                  : null,
+                            );
+                          },
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        itemCount: filteredEvents.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (context, i) {
-                          final e = filteredEvents[i];
-                          return _OrganizerEventCard(
-                            event: e,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EventManagementScreen(event: e),
-                              ),
-                            ),
-                            onEdit: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => CreateEventScreen(existing: e),
-                              ),
-                            ),
-                            onDelete: () => _confirmAndDelete(context, ref, e),
-                            onPostpone: (e.status == EventStatus.published ||
-                                    e.status == EventStatus.postponed)
-                                ? () => PostponeEventDialog.show(context, e)
-                                : null,
-                          );
-                        },
-                      ),
+                ),
               ),
             ],
           );

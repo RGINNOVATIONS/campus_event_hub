@@ -13,7 +13,7 @@ class SupabaseEventRepository implements EventRepository {
       'id, club_id, category_id, title, short_description, full_description, poster_path, '
       'venue, start_at, end_at, registration_deadline, eligibility, rules, fee_text, '
       'contact_name, contact_email, contact_phone, status, rejection_reason, '
-      'clubs(name), categories(name)';
+      'clubs!club_id(name), categories!category_id(name)';
 
   EventModel _mapRow(Map<String, dynamic> row) => EventModel(
         id: row['id'] as String,
@@ -121,7 +121,10 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<Set<String>>> favouriteEventIds() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('favourites')
           .select('event_id')
@@ -136,7 +139,10 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<void>> addFavourite(String eventId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('favourites')
           .insert({'user_id': uid, 'event_id': eventId});
@@ -149,7 +155,10 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<void>> removeFavourite(String eventId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('favourites')
           .delete()
@@ -164,7 +173,10 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<Map<String, EnrolmentModel>>> myEnrolments() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('enrolments')
           .select('id, event_id, qr_token, attendance_status')

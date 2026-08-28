@@ -22,7 +22,7 @@ class SupabaseClubRepository implements ClubRepository {
       'id, club_id, category_id, title, short_description, full_description, poster_path, '
       'venue, start_at, end_at, registration_deadline, eligibility, rules, fee_text, '
       'contact_name, contact_email, contact_phone, status, rejection_reason, '
-      'clubs(name), categories(name)';
+      'clubs!club_id(name), categories!category_id(name)';
 
   EventModel _mapEvent(Map<String, dynamic> row) => EventModel(
         id: row['id'] as String,
@@ -47,6 +47,7 @@ class SupabaseClubRepository implements ClubRepository {
         contactPhone: row['contact_phone'] as String?,
         status: EventStatusX.fromDb(row['status'] as String),
         rejectionReason: row['rejection_reason'] as String?,
+        postponementReason: row['postponement_reason'] as String?,
       );
 
   @override
@@ -82,7 +83,7 @@ class SupabaseClubRepository implements ClubRepository {
           .from('events')
           .select(_eventSelect)
           .eq('club_id', clubId)
-          .eq('status', 'published')
+          .inFilter('status', ['published', 'postponed'])
           .order('start_at');
       return Result.ok((rows as List)
           .map((r) => _mapEvent(r as Map<String, dynamic>))
@@ -95,7 +96,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<Set<String>>> followedClubIds() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('club_follows')
           .select('club_id')
@@ -110,7 +114,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<void>> followClub(String clubId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('club_follows')
           .insert({'user_id': uid, 'club_id': clubId});
@@ -123,7 +130,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<void>> unfollowClub(String clubId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('club_follows')
           .delete()
@@ -138,7 +148,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<Set<String>>> followedCategoryIds() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('category_follows')
           .select('category_id')
@@ -153,7 +166,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<void>> followCategory(String categoryId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('category_follows')
           .insert({'user_id': uid, 'category_id': categoryId});
@@ -166,7 +182,10 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<void>> unfollowCategory(String categoryId) async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       await _client
           .from('category_follows')
           .delete()

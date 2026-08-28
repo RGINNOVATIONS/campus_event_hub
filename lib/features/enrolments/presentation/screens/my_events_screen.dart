@@ -31,35 +31,72 @@ class MyEventsScreen extends ConsumerWidget {
         loading: () => const LoadingState(message: 'Loading your events...'),
         error: (e, _) => ErrorState(
           message: 'Could not load your events.',
-          onRetry: () => ref.invalidate(upcomingEventsProvider),
+          onRetry: () {
+            ref.invalidate(upcomingEventsProvider);
+            ref.read(enrolmentsProvider.notifier).refresh();
+          },
         ),
         data: (events) {
-          final enrolments = enrolmentsAsync.valueOrNull ?? {};
-          final myEvents =
-              events.where((e) => enrolments.containsKey(e.id)).toList();
+          return enrolmentsAsync.when(
+            loading: () =>
+                const LoadingState(message: 'Loading your registrations...'),
+            error: (e, _) => ErrorState(
+              message: 'Could not load your registrations.',
+              onRetry: () {
+                ref.invalidate(upcomingEventsProvider);
+                ref.read(enrolmentsProvider.notifier).refresh();
+              },
+            ),
+            data: (enrolments) {
+              final myEvents =
+                  events.where((e) => enrolments.containsKey(e.id)).toList();
 
-          if (myEvents.isEmpty) {
-            return const EmptyState(
-              icon: Icon(Icons.event_busy_outlined),
-              title: 'No registered events',
-              description:
-                  'You have not enrolled in any events yet. Explore upcoming campus events and register to attend.',
-            );
-          }
+              if (myEvents.isEmpty) {
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    ref.invalidate(upcomingEventsProvider);
+                    await ref.read(enrolmentsProvider.notifier).refresh();
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 80),
+                      EmptyState(
+                        icon: Icon(Icons.event_busy_outlined),
+                        title: 'No registered events',
+                        description:
+                            'You have not enrolled in any events yet. Explore upcoming campus events and register to attend.',
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            itemCount: myEvents.length,
-            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, i) {
-              final event = myEvents[i];
-              final enrolment = enrolments[event.id]!;
-              return _MyEventCard(
-                event: event,
-                attendanceStatus: enrolment.attendanceStatus,
-                onTap: () => context.push('/event/${event.id}'),
-                onQrPass: () =>
-                    context.push('/student/my-events/${event.id}/qr'),
+              return RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  ref.invalidate(upcomingEventsProvider);
+                  await ref.read(enrolmentsProvider.notifier).refresh();
+                },
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  itemCount: myEvents.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, i) {
+                    final event = myEvents[i];
+                    final enrolment = enrolments[event.id]!;
+                    return _MyEventCard(
+                      event: event,
+                      attendanceStatus: enrolment.attendanceStatus,
+                      onTap: () => context.push('/event/${event.id}'),
+                      onQrPass: () =>
+                          context.push('/student/my-events/${event.id}/qr'),
+                    );
+                  },
+                ),
               );
             },
           );

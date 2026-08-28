@@ -53,9 +53,13 @@ class OrganizerDashboardScreen extends ConsumerWidget {
           final isTablet =
               MediaQuery.of(context).size.width >= AppBreakpoints.tablet;
 
-          return ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(organizerDashboardProvider);
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: [
               // Welcome Hero banner
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
@@ -219,8 +223,9 @@ class OrganizerDashboardScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSpacing.xxl),
             ],
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

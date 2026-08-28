@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: attendees, error: attErr } = await admin
       .from('enrolments')
-      .select('user_id, profiles(full_name)')
+      .select('user_id, profiles!user_id(full_name)')
       .eq('event_id', event_id)
       .eq('attendance_status', 'attended');
     if (attErr) throw attErr;

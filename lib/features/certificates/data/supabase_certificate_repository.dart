@@ -10,10 +10,13 @@ class SupabaseCertificateRepository implements CertificateRepository {
   @override
   Future<Result<List<CertificateModel>>> myCertificates() async {
     try {
-      final uid = _client.auth.currentUser!.id;
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        return Result.err(const AuthFailure('User not authenticated.'));
+      }
       final rows = await _client
           .from('certificates')
-          .select('id, event_id, certificate_code, issued_at, events(title)')
+          .select('id, event_id, certificate_code, issued_at, events!event_id(title)')
           .eq('user_id', uid)
           .order('issued_at', ascending: false);
       return Result.ok((rows as List)
@@ -56,7 +59,7 @@ class SupabaseCertificateRepository implements CertificateRepository {
       final row = await _client
           .from('certificates')
           .select(
-              'issued_at, events(title, start_at, clubs(name)), profiles(full_name)')
+              'issued_at, events!event_id(title, start_at, clubs!club_id(name)), profiles!user_id(full_name)')
           .eq('certificate_code', code)
           .maybeSingle();
       if (row == null) {

@@ -28,9 +28,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loggingIn = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
           state.matchedLocation == '/forgot-password';
+      final isPublicRoute = loggingIn ||
+          state.matchedLocation.startsWith('/verify-certificate');
 
       if (profile == null) {
-        if (loggingIn) return null;
+        if (isPublicRoute) return null;
         return '/login';
       }
 
