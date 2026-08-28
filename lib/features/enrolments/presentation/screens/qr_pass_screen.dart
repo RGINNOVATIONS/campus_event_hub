@@ -63,207 +63,245 @@ class QrPassScreen extends ConsumerWidget {
           final dateFmt = DateFormat('EEEE, d MMMM yyyy');
           final timeFmt = DateFormat('h:mm a');
 
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
+            child: Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
-                child: Material(
-                  color: AppColors.surface,
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: AppColors.border),
-                    borderRadius: AppRadius.lg,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Ticket Header with Category & Status
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(AppRadius.large),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            AppBadge(
-                              label: event.categoryName,
-                              tone: AppBadgeTone.primary,
-                            ),
-                            const Spacer(),
-                            AppBadge(
-                              label: isAttended ? 'Checked in' : 'Registered',
-                              tone: isAttended
-                                  ? AppBadgeTone.success
-                                  : AppBadgeTone.warning,
-                              icon: Icon(
-                                isAttended
-                                    ? Icons.check_circle
-                                    : Icons.access_time_rounded,
-                                size: 14,
-                              ),
-                            ),
-                          ],
-                        ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Registration Confirmed Block
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFEBEE),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        color: Color(0xFFC62828),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Registered Successfully',
+                      style: AppTextStyles.title.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF2B2B2B),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
 
-                      // Event & Attendee info
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl,
-                          vertical: AppSpacing.lg,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              event.title,
-                              textAlign: TextAlign.center,
-                              style: AppTextStyles.headline,
+                    // Existing Pass Card
+                    Material(
+                      color: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(color: AppColors.border),
+                        borderRadius: AppRadius.lg,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Ticket Header with Category & Status
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.lg,
+                              vertical: AppSpacing.md,
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              event.clubName,
-                              style: AppTextStyles.label.copyWith(
-                                color: AppColors.primary,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(AppRadius.large),
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.md),
-
-                            // Attendee card pill
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceElevated,
-                                borderRadius: AppRadius.md,
-                                border: Border.all(color: AppColors.border),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.person_outline,
-                                      size: 16, color: AppColors.textSecondary),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    profile?.fullName ?? 'Student',
-                                    style: AppTextStyles.label,
+                            child: Row(
+                              children: [
+                                AppBadge(
+                                  label: event.categoryName,
+                                  tone: AppBadgeTone.primary,
+                                ),
+                                const Spacer(),
+                                AppBadge(
+                                  label: isAttended ? 'Checked in' : 'Registered',
+                                  tone: isAttended
+                                      ? AppBadgeTone.success
+                                      : AppBadgeTone.warning,
+                                  icon: Icon(
+                                    isAttended
+                                        ? Icons.check_circle
+                                        : Icons.access_time_rounded,
+                                    size: 14,
                                   ),
-                                  if (profile?.collegeId != null &&
-                                      profile!.collegeId.isNotEmpty) ...[
-                                    const SizedBox(width: AppSpacing.sm),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Event & Attendee info
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.lg,
+                              vertical: AppSpacing.md,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  event.title,
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.headline,
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  event.clubName,
+                                  style: AppTextStyles.label.copyWith(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+
+                                // Attendee card pill
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.xs,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceElevated,
+                                    borderRadius: AppRadius.md,
+                                    border: Border.all(color: AppColors.border),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.person_outline,
+                                          size: 16, color: AppColors.textSecondary),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      Text(
+                                        profile?.fullName ?? 'Student',
+                                        style: AppTextStyles.label,
+                                      ),
+                                      if (profile?.collegeId != null &&
+                                          profile!.collegeId.isNotEmpty) ...[
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Text(
+                                          '• ${profile.collegeId}',
+                                          style: AppTextStyles.caption.copyWith(
+                                            color: AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+
+                                // QR Code Frame
+                                Container(
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: AppRadius.lg,
+                                    border: Border.all(color: AppColors.border),
+                                    boxShadow: AppShadows.md,
+                                  ),
+                                  child: QrImageView(
+                                    data: enrolment.qrToken,
+                                    size: 175,
+                                    backgroundColor: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+
+                                // Dashed Divider / Ticket separation
+                                const Divider(height: 1, color: AppColors.border),
+                                const SizedBox(height: AppSpacing.sm),
+
+                                // Event Timing & Venue details
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.calendar_today_outlined,
+                                        size: 14, color: AppColors.textMuted),
+                                    const SizedBox(width: AppSpacing.xs),
                                     Text(
-                                      '• ${profile.collegeId}',
+                                      dateFmt.format(event.startAt),
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      '· ${timeFmt.format(event.startAt)}',
                                       style: AppTextStyles.caption.copyWith(
                                         color: AppColors.textMuted,
                                       ),
                                     ),
                                   ],
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // QR Code Frame
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.lg),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: AppRadius.lg,
-                                border: Border.all(color: AppColors.border),
-                                boxShadow: AppShadows.md,
-                              ),
-                              child: QrImageView(
-                                data: enrolment.qrToken,
-                                size: 190,
-                                backgroundColor: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // Dashed Divider / Ticket separation
-                            const Divider(height: 1, color: AppColors.border),
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // Event Timing & Venue details
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.calendar_today_outlined,
-                                    size: 14, color: AppColors.textMuted),
-                                const SizedBox(width: AppSpacing.xs),
-                                Text(
-                                  dateFmt.format(event.startAt),
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
                                 ),
-                                const SizedBox(width: AppSpacing.xs),
-                                Text(
-                                  '· ${timeFmt.format(event.startAt)}',
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.location_on_outlined,
-                                    size: 14, color: AppColors.textMuted),
-                                const SizedBox(width: AppSpacing.xs),
-                                Flexible(
-                                  child: Text(
-                                    event.venue,
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // Instructions hint
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.md),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceElevated,
-                                borderRadius: AppRadius.sm,
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.info_outline,
-                                      size: 16, color: AppColors.textMuted),
-                                  SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: Text(
-                                      'Present this QR pass at the entrance desk for attendance verification.',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textSecondary,
+                                const SizedBox(height: AppSpacing.xs),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.location_on_outlined,
+                                        size: 14, color: AppColors.textMuted),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Flexible(
+                                      child: Text(
+                                        event.venue,
+                                        textAlign: TextAlign.center,
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
                                       ),
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+
+                                // Instructions hint
+                                Container(
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceElevated,
+                                    borderRadius: AppRadius.sm,
                                   ),
-                                ],
-                              ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.info_outline,
+                                          size: 16, color: AppColors.textMuted),
+                                      SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        child: Text(
+                                          'Present this QR pass at the entrance desk for attendance verification.',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-              );
+          );
             },
           );
         },
