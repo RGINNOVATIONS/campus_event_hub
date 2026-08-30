@@ -115,7 +115,7 @@ class _ClubsScreenState extends ConsumerState<ClubsScreen> {
                                           followedClubs.contains(club.id),
                                       isStudent: isStudent,
                                       onTap: () => context
-                                          .push('/student/clubs/${club.id}'),
+                                          .push('/clubs/${club.id}'),
                                       onFollowToggle: () => ref
                                           .read(followedClubsProvider.notifier)
                                           .toggle(club.id),

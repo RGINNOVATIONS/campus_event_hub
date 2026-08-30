@@ -1,7 +1,6 @@
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/features/admin/presentation/screens/admin_screens.dart';
 import 'package:campus_event_hub/features/events/presentation/screens/home_screen.dart';
-import 'package:campus_event_hub/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class AdminShell extends StatefulWidget {
@@ -19,7 +18,6 @@ class _AdminShellState extends State<AdminShell> {
     PendingEventsScreen(),
     ClubsScreen(),
     AdminCalendarScreen(),
-    ProfileScreen(),
   ];
 
   static const _destinations = [
@@ -43,10 +41,6 @@ class _AdminShellState extends State<AdminShell> {
         icon: Icon(Icons.calendar_month_outlined),
         selectedIcon: Icon(Icons.calendar_month),
         label: 'Calendar'),
-    NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profile'),
   ];
 
   @override

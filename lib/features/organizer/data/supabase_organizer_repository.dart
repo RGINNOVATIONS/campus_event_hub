@@ -435,21 +435,13 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<void>> markEventCompleted(String eventId) async {
     try {
-      final rows = await _client
-          .from('events')
-          .update({
-            'status': 'completed',
-            'completed_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', eventId)
-          .select('id');
-      if ((rows as List).isEmpty) {
-        return Result.err(const AuthorizationFailure(
-            'Event could not be updated. You may lack permission.'));
-      }
+      await _client.rpc('complete_event_by_organizer', params: {
+        'p_event_id': eventId,
+      });
       return Result.ok(null);
     } catch (e) {
-      return Result.err(mapExceptionToFailure(e));
+      return Result.err(
+          mapExceptionToFailure(e, fallbackMessage: 'Could not mark event completed.'));
     }
   }
 

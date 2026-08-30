@@ -54,6 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Prevent non-students from entering the student shell or student-only screens
       if (state.matchedLocation.startsWith('/student') &&
+          !state.matchedLocation.startsWith('/student/clubs') &&
           profile.role != UserRole.student) {
         return _homeFor(profile.role);
       }
@@ -81,6 +82,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/event/:id',
         builder: (context, state) =>
             EventDetailsScreen(eventId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/clubs',
+        builder: (context, state) => const ClubsScreen(),
+      ),
+      GoRoute(
+        path: '/clubs/:id',
+        builder: (context, state) =>
+            ClubDetailsScreen(clubId: state.pathParameters['id']!),
       ),
       GoRoute(
           path: '/student', builder: (context, state) => const StudentShell()),

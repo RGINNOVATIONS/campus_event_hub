@@ -110,7 +110,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                       isActive: isFollowed,
                       onToggle: () =>
                           ref.read(followedClubsProvider.notifier).toggle(c.id),
-                      onViewTap: () => context.push('/student/clubs/${c.id}'),
+                      onViewTap: () => context.push('/clubs/${c.id}'),
                     );
                   }).toList(),
                 );

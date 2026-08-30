@@ -223,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
                             icon: Icons.groups_outlined,
                             label: 'Browse Clubs',
                             subtitle: 'Discover and follow campus clubs',
-                            onTap: () => context.push('/student/clubs'),
+                            onTap: () => context.push('/clubs'),
                           ),
 
                           // Notification Preferences (student only)

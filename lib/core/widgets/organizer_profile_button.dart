@@ -1,10 +1,11 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
+import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Clean, responsive profile avatar button for the top-right of Organizer AppBars.
+/// Clean, responsive profile avatar button for the top-right of AppBars.
 class OrganizerProfileButton extends ConsumerWidget {
   const OrganizerProfileButton({super.key});
 
@@ -13,7 +14,7 @@ class OrganizerProfileButton extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final initial = (profile?.fullName.isNotEmpty ?? false)
         ? profile!.fullName[0].toUpperCase()
-        : 'O';
+        : (profile?.role == UserRole.admin ? 'A' : 'O');
 
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.md),

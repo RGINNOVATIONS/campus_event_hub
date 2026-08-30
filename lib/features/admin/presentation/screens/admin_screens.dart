@@ -6,6 +6,7 @@ import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
+import 'package:campus_event_hub/features/organizer/presentation/screens/event_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -51,6 +52,7 @@ class AdminDashboardScreen extends ConsumerWidget {
         title: const Text('Administrator Dashboard'),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
@@ -257,102 +259,125 @@ class PendingEventsScreen extends ConsumerWidget {
                   side: const BorderSide(color: AppColors.border),
                   borderRadius: AppRadius.lg,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          AppBadge(
-                            label: e.clubName,
-                            tone: AppBadgeTone.primary,
-                          ),
-                          const Spacer(),
-                          const AppBadge(
-                            label: 'Pending Approval',
-                            tone: AppBadgeTone.warning,
-                          ),
-                        ],
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => EventManagementScreen(
+                        event: e,
+                        isReadOnly: true,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        e.title,
-                        style: AppTextStyles.title,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today_outlined,
-                              size: 14, color: AppColors.textMuted),
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            DateFormat('d MMM, h:mm a').format(e.startAt),
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            AppBadge(
+                              label: e.clubName,
+                              tone: AppBadgeTone.primary,
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          const Icon(Icons.location_on_outlined,
-                              size: 14, color: AppColors.textMuted),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              e.venue,
+                            const Spacer(),
+                            const AppBadge(
+                              label: 'Pending Approval',
+                              tone: AppBadgeTone.warning,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e.title,
+                                style: AppTextStyles.title,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 14,
+                              color: AppColors.textMuted,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today_outlined,
+                                size: 14, color: AppColors.textMuted),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(
+                              DateFormat('d MMM, h:mm a').format(e.startAt),
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        e.shortDescription,
-                        style: AppTextStyles.bodySecondary,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      const Divider(height: 1, color: AppColors.border),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => _reject(context, ref, e.id),
-                              child: const Text('Reject'),
+                            const SizedBox(width: AppSpacing.md),
+                            const Icon(Icons.location_on_outlined,
+                                size: 14, color: AppColors.textMuted),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Text(
+                                e.venue,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final res = await ref
-                                    .read(adminRepositoryProvider)
-                                    .approveEvent(e.id);
-                                res.when(
-                                  ok: (_) {
-                                    ref.invalidate(pendingEventsProvider);
-                                    ref.invalidate(adminDashboardProvider);
-                                    ref.invalidate(upcomingEventsProvider);
-                                    ref.invalidate(calendarEventsProvider);
-                                  },
-                                  err: (f) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(
-                                              content: Text(f.message)));
-                                    }
-                                  },
-                                );
-                              },
-                              child: const Text('Approve'),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          e.shortDescription,
+                          style: AppTextStyles.bodySecondary,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        const Divider(height: 1, color: AppColors.border),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => _reject(context, ref, e.id),
+                                child: const Text('Reject'),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final res = await ref
+                                      .read(adminRepositoryProvider)
+                                      .approveEvent(e.id);
+                                  res.when(
+                                    ok: (_) {
+                                      ref.invalidate(pendingEventsProvider);
+                                      ref.invalidate(adminDashboardProvider);
+                                      ref.invalidate(upcomingEventsProvider);
+                                      ref.invalidate(calendarEventsProvider);
+                                    },
+                                    err: (f) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                content: Text(f.message)));
+                                      }
+                                    },
+                                  );
+                                },
+                                child: const Text('Approve'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -633,87 +658,98 @@ class AdminCalendarScreen extends ConsumerWidget {
                   side: const BorderSide(color: AppColors.border),
                   borderRadius: AppRadius.lg,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      // Date Block
-                      Container(
-                        width: 52,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.sm,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: AppRadius.md,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              DateFormat('d').format(e.startAt),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Text(
-                              DateFormat('MMM').format(e.startAt).toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => EventManagementScreen(
+                        event: e,
+                        isReadOnly: true,
                       ),
-                      const SizedBox(width: AppSpacing.md),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        // Date Block
+                        Container(
+                          width: 52,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.sm,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: AppRadius.md,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                DateFormat('d').format(e.startAt),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              Text(
+                                DateFormat('MMM').format(e.startAt).toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
 
-                      // Event details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              e.title,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                        // Event details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                e.title,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${e.clubName} · ${e.venue}',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textSecondary,
+                              const SizedBox(height: 2),
+                              Text(
+                                '${e.clubName} · ${e.venue}',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
 
-                      // Export CSV action
-                      IconButton(
-                        icon: const Icon(Icons.file_download_outlined,
-                            color: AppColors.primary),
-                        tooltip: 'Export student list (CSV)',
-                        onPressed: () => _exportCsv(context, ref, e),
-                      ),
+                        // Export CSV action
+                        IconButton(
+                          icon: const Icon(Icons.file_download_outlined,
+                              color: AppColors.primary),
+                          tooltip: 'Export student list (CSV)',
+                          onPressed: () => _exportCsv(context, ref, e),
+                        ),
 
-                      // Cancel action
-                      IconButton(
-                        icon: const Icon(Icons.block, color: AppColors.danger),
-                        tooltip: 'Cancel / Unpublish',
-                        onPressed: () => _confirmCancel(context, ref, e.id),
-                      ),
-                    ],
+                        // Cancel action
+                        IconButton(
+                          icon: const Icon(Icons.block, color: AppColors.danger),
+                          tooltip: 'Cancel / Unpublish',
+                          onPressed: () => _confirmCancel(context, ref, e.id),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

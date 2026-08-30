@@ -324,7 +324,7 @@ class _EventSummaryCard extends StatelessWidget {
             text: event.venue,
           ),
           InkWell(
-            onTap: () => context.push('/student/clubs/${event.clubId}'),
+            onTap: () => context.push('/clubs/${event.clubId}'),
             borderRadius: AppRadius.md,
             child: _InfoRow(
               icon: Icons.groups_outlined,

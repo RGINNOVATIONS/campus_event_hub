@@ -17,7 +17,12 @@ import 'package:intl/intl.dart';
 
 class EventManagementScreen extends ConsumerStatefulWidget {
   final EventModel event;
-  const EventManagementScreen({super.key, required this.event});
+  final bool isReadOnly;
+  const EventManagementScreen({
+    super.key,
+    required this.event,
+    this.isReadOnly = false,
+  });
 
   @override
   ConsumerState<EventManagementScreen> createState() =>
@@ -77,12 +82,21 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
         title: Text(event.title),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        actions: const [OrganizerProfileButton()],
+        actions: widget.isReadOnly
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  tooltip: 'Refresh',
+                  onPressed: _refreshCurrentEvent,
+                ),
+              ]
+            : const [OrganizerProfileButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
+
       body: RefreshIndicator(
         onRefresh: () async => _refreshCurrentEvent(),
         child: ListView(
@@ -247,47 +261,49 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
                     children: [
-                      AppSecondaryButton(
-                        label: 'Edit Event',
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        iconPosition: AppButtonIconPosition.left,
-                        onPressed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CreateEventScreen(existing: event),
-                            ),
-                          );
-                          _refreshCurrentEvent();
-                        },
-                      ),
-                      if (canPostpone)
+                      if (!widget.isReadOnly) ...[
                         AppSecondaryButton(
-                          label: 'Postpone Event',
-                          icon: const Icon(Icons.update_rounded,
-                              size: 16, color: AppColors.warning),
+                          label: 'Edit Event',
+                          icon: const Icon(Icons.edit_outlined, size: 16),
                           iconPosition: AppButtonIconPosition.left,
                           onPressed: () async {
-                            final postponed = await PostponeEventDialog.show(
-                                context, event);
-                            if (postponed == true) {
-                              _refreshCurrentEvent();
-                            }
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CreateEventScreen(existing: event),
+                              ),
+                            );
+                            _refreshCurrentEvent();
                           },
                         ),
-                      if (canScan)
-                        AppSecondaryButton(
-                          label: 'Scan Attendance',
-                          icon: const Icon(Icons.qr_code_scanner_rounded,
-                              size: 16, color: AppColors.primary),
-                          iconPosition: AppButtonIconPosition.left,
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AttendanceScanScreen(initialEvent: event),
+                        if (canPostpone)
+                          AppSecondaryButton(
+                            label: 'Postpone Event',
+                            icon: const Icon(Icons.update_rounded,
+                                size: 16, color: AppColors.warning),
+                            iconPosition: AppButtonIconPosition.left,
+                            onPressed: () async {
+                              final postponed = await PostponeEventDialog.show(
+                                  context, event);
+                              if (postponed == true) {
+                                _refreshCurrentEvent();
+                              }
+                            },
+                          ),
+                        if (canScan)
+                          AppSecondaryButton(
+                            label: 'Scan Attendance',
+                            icon: const Icon(Icons.qr_code_scanner_rounded,
+                                size: 16, color: AppColors.primary),
+                            iconPosition: AppButtonIconPosition.left,
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    AttendanceScanScreen(initialEvent: event),
+                              ),
                             ),
                           ),
-                        ),
+                      ],
                       AppSecondaryButton(
                         label: _isExporting ? 'Exporting...' : 'Download CSV',
                         icon: _isExporting
@@ -304,13 +320,15 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                         iconPosition: AppButtonIconPosition.left,
                         onPressed: (_busy || _isExporting) ? null : _exportCsv,
                       ),
-                      AppSecondaryButton(
-                        label: 'Delete Event',
-                        icon: const Icon(Icons.delete_outline_rounded,
-                            size: 16, color: AppColors.danger),
-                        iconPosition: AppButtonIconPosition.left,
-                        onPressed: _busy ? null : () => _confirmAndDelete(context),
-                      ),
+                      if (!widget.isReadOnly)
+                        AppSecondaryButton(
+                          label: 'Delete Event',
+                          icon: const Icon(Icons.delete_outline_rounded,
+                              size: 16, color: AppColors.danger),
+                          iconPosition: AppButtonIconPosition.left,
+                          onPressed:
+                              _busy ? null : () => _confirmAndDelete(context),
+                        ),
                     ],
                   ),
                 ],
@@ -511,12 +529,32 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    Text(
-                                      'User ID: ${r.userId}',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ),
+                                    () {
+                                      final details = <String>[];
+                                      if (r.studentId.isNotEmpty &&
+                                          r.studentId != 'N/A') {
+                                        details.add('ID: ${r.studentId}');
+                                      }
+                                      if (r.rollNo.isNotEmpty &&
+                                          r.rollNo != 'N/A') {
+                                        details.add('Roll: ${r.rollNo}');
+                                      }
+                                      if (r.branch.isNotEmpty &&
+                                          r.branch != 'N/A') {
+                                        details.add(r.branch);
+                                      }
+                                      final subtitle = details.isNotEmpty
+                                          ? details.join(' · ')
+                                          : (r.userId.length > 8
+                                              ? 'ID: ${r.userId.substring(0, 8)}'
+                                              : 'ID: ${r.userId}');
+                                      return Text(
+                                        subtitle,
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.textMuted,
+                                        ),
+                                      );
+                                    }(),
                                   ],
                                 ),
                               ),
@@ -539,61 +577,63 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
           const SizedBox(height: AppSpacing.lg),
 
           // 4. Lifecycle Actions (Mark Completed / Issue Certificates)
-          if (event.status == EventStatus.published ||
-              event.status == EventStatus.postponed)
-            AppPrimaryButton(
-              label: 'Mark Event Completed',
-              icon: const Icon(Icons.task_alt_rounded, size: 18),
-              iconPosition: AppButtonIconPosition.left,
-              isLoading: _busy,
-              fullWidth: true,
-              onPressed: _busy ? null : () => _confirmAndComplete(context),
-            ),
-
-          if (event.status == EventStatus.completed)
-            Material(
-              color: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(color: AppColors.border),
-                borderRadius: AppRadius.lg,
+          if (!widget.isReadOnly) ...[
+            if (event.status == EventStatus.published ||
+                event.status == EventStatus.postponed)
+              AppPrimaryButton(
+                label: 'Mark Event Completed',
+                icon: const Icon(Icons.task_alt_rounded, size: 18),
+                iconPosition: AppButtonIconPosition.left,
+                isLoading: _busy,
+                fullWidth: true,
+                onPressed: _busy ? null : () => _confirmAndComplete(context),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.workspace_premium_rounded,
-                          color: AppColors.primary,
-                          size: 24,
-                        ),
-                        SizedBox(width: AppSpacing.sm),
-                        Text(
-                          'Issue Certificates',
-                          style: AppTextStyles.title,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      '$attendedCount verified attendee(s) are eligible to receive completion certificates.',
-                      style: AppTextStyles.bodySecondary,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppPrimaryButton(
-                      label: 'Issue Digital Certificates',
-                      icon: const Icon(Icons.card_membership_rounded, size: 18),
-                      iconPosition: AppButtonIconPosition.left,
-                      isLoading: _busy,
-                      fullWidth: true,
-                      onPressed: _busy ? null : _issueCertificates,
-                    ),
-                  ],
+
+            if (event.status == EventStatus.completed)
+              Material(
+                color: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: AppColors.border),
+                  borderRadius: AppRadius.lg,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Issue Certificates',
+                            style: AppTextStyles.title,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        '$attendedCount verified attendee(s) are eligible to receive completion certificates.',
+                        style: AppTextStyles.bodySecondary,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppPrimaryButton(
+                        label: 'Issue Digital Certificates',
+                        icon: const Icon(Icons.card_membership_rounded, size: 18),
+                        iconPosition: AppButtonIconPosition.left,
+                        isLoading: _busy,
+                        fullWidth: true,
+                        onPressed: _busy ? null : _issueCertificates,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+          ],
 
           const SizedBox(height: AppSpacing.xxl),
         ],
