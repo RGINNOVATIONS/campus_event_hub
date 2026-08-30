@@ -277,6 +277,50 @@ class DemoDataStore {
             'sign-off, which was not attached. Please resubmit with approval attached.',
       ),
       EventModel(
+        id: 'evt-closed-deadline',
+        clubId: 'club-robotics',
+        clubName: 'Robotics & Automation Club',
+        categoryId: 'cat-technical',
+        categoryName: 'Technical',
+        title: 'AI Research Symposium 2026',
+        shortDescription: 'Keynotes on foundation models and robotics.',
+        posterPath: 'https://picsum.photos/seed/aisymposium/800/400',
+        fullDescription:
+            'A full-day symposium featuring faculty talks and student research presentations.',
+        venue: 'Main Auditorium',
+        startAt: now.add(const Duration(days: 4)),
+        endAt: now.add(const Duration(days: 4, hours: 6)),
+        registrationDeadline: now.subtract(const Duration(days: 1)),
+        eligibility: 'All students.',
+        rules: 'Pre-registered badge required.',
+        contactName: 'Rahul Verma',
+        contactEmail: 'demo.organizer@college.edu.example',
+        status: EventStatus.published,
+      ),
+      EventModel(
+        id: 'evt-postponed-future',
+        clubId: 'club-robotics',
+        clubName: 'Robotics & Automation Club',
+        categoryId: 'cat-technical',
+        categoryName: 'Technical',
+        title: 'Autonomous Drone Showcase',
+        shortDescription: 'Live flight demos and obstacle navigation.',
+        posterPath: 'https://picsum.photos/seed/droneshowcase/800/400',
+        fullDescription:
+            'Live indoor obstacle course demonstration with autonomous drones.',
+        venue: 'Sports Complex',
+        startAt: now.add(const Duration(days: 15)),
+        endAt: now.add(const Duration(days: 15, hours: 4)),
+        registrationDeadline: now.add(const Duration(days: 12)),
+        eligibility: 'Open to all.',
+        rules: 'Follow safety barriers.',
+        contactName: 'Rahul Verma',
+        contactEmail: 'demo.organizer@college.edu.example',
+        status: EventStatus.postponed,
+        postponementReason:
+            'Rescheduled to allow completion of the safety perimeter net.',
+      ),
+      EventModel(
         id: 'evt-past-hackathon',
         clubId: 'club-robotics',
         clubName: 'Robotics & Automation Club',
@@ -340,6 +384,21 @@ class DemoDataStore {
           attendedAt: null,
         ),
       ],
+      'evt-closed-deadline': [
+        const RegistrationRow(
+          userId: 'demo-student-1',
+          studentName: 'Aisha Sharma',
+          studentId: 'STU2026041',
+          rollNo: '70012026041',
+          programme: 'B.Tech',
+          branch: 'Computer Engineering (CE)',
+          academicYear: 'Third Year',
+          collegeEmail: 'demo.student@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.registered,
+          attendedAt: null,
+        ),
+      ],
       'evt-past-hackathon': [
         RegistrationRow(
           userId: 'demo-student-1',
@@ -359,6 +418,7 @@ class DemoDataStore {
 
     qrTokensByEvent = {
       'evt-1': {'DEMO-QR-TOKEN-EVT1-AISHA': 'demo-student-1'},
+      'evt-closed-deadline': {'DEMO-QR-TOKEN-CLOSED-AISHA': 'demo-student-1'},
       'evt-past-hackathon': {'DEMO-QR-TOKEN-HACKATHON-AISHA': 'demo-student-1'},
     };
 

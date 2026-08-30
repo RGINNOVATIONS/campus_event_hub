@@ -11,6 +11,13 @@ final upcomingEventsProvider =
   return result.when(ok: (v) => v, err: (f) => throw f);
 });
 
+final openEventsProvider =
+    FutureProvider.autoDispose<List<EventModel>>((ref) async {
+  final repo = ref.watch(eventRepositoryProvider);
+  final result = await repo.openPublishedEvents();
+  return result.when(ok: (v) => v, err: (f) => throw f);
+});
+
 final categoriesProvider =
     FutureProvider.autoDispose<List<CategoryModel>>((ref) async {
   final repo = ref.watch(eventRepositoryProvider);

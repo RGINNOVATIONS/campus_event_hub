@@ -360,6 +360,7 @@ class PendingEventsScreen extends ConsumerWidget {
                                       ref.invalidate(pendingEventsProvider);
                                       ref.invalidate(adminDashboardProvider);
                                       ref.invalidate(upcomingEventsProvider);
+                                      ref.invalidate(openEventsProvider);
                                       ref.invalidate(calendarEventsProvider);
                                     },
                                     err: (f) {
@@ -860,6 +861,7 @@ class AdminCalendarScreen extends ConsumerWidget {
         ref.invalidate(calendarEventsProvider);
         ref.invalidate(adminDashboardProvider);
         ref.invalidate(upcomingEventsProvider);
+        ref.invalidate(openEventsProvider);
       },
       err: (f) {
         if (context.mounted) {

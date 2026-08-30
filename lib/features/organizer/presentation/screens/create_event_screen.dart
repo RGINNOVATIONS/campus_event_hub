@@ -471,6 +471,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           ref.invalidate(eventByIdProvider(widget.existing!.id));
         }
         ref.invalidate(upcomingEventsProvider);
+        ref.invalidate(openEventsProvider);
         if (mounted) {
           final String msg;
           if (submit) {

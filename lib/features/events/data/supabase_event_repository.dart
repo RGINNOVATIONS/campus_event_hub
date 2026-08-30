@@ -90,6 +90,26 @@ class SupabaseEventRepository implements EventRepository {
   }
 
   @override
+  Future<Result<List<EventModel>>> openPublishedEvents() async {
+    try {
+      final nowUtc = DateTime.now().toUtc().toIso8601String();
+      final rows = await _client
+          .from('events')
+          .select(_eventSelect)
+          .inFilter('status', ['published', 'postponed'])
+          .gte('registration_deadline', nowUtc)
+          .order('start_at');
+      final mapped = (rows as List)
+          .map((r) => _mapRow(r as Map<String, dynamic>))
+          .toList();
+      return Result.ok(await _resolvePosters(mapped));
+    } catch (e) {
+      return Result.err(
+          mapExceptionToFailure(e, fallbackMessage: 'Could not load events.'));
+    }
+  }
+
+  @override
   Future<Result<List<CategoryModel>>> categories() async {
     try {
       final rows = await _client

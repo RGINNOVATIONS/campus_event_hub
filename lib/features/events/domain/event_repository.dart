@@ -30,6 +30,7 @@ class EnrolmentModel {
 
 abstract class EventRepository {
   Future<Result<List<EventModel>>> upcomingPublishedEvents();
+  Future<Result<List<EventModel>>> openPublishedEvents();
   Future<Result<List<CategoryModel>>> categories();
   Future<Result<EventModel>> eventById(String id);
 

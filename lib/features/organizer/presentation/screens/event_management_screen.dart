@@ -684,6 +684,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     ref.invalidate(organizerEventsProvider);
     ref.invalidate(organizerDashboardProvider);
     ref.invalidate(upcomingEventsProvider);
+    ref.invalidate(openEventsProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -733,6 +734,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
         ref.invalidate(organizerEventsProvider);
         ref.invalidate(organizerDashboardProvider);
         ref.invalidate(upcomingEventsProvider);
+        ref.invalidate(openEventsProvider);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

@@ -94,6 +94,7 @@ class _PostponeEventDialogState extends ConsumerState<PostponeEventDialog> {
         ref.invalidate(organizerDashboardProvider);
         ref.invalidate(eventByIdProvider(widget.event.id));
         ref.invalidate(upcomingEventsProvider);
+        ref.invalidate(openEventsProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Event postponed successfully.'),

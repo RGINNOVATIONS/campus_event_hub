@@ -40,7 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(openEventsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final favouritesAsync = ref.watch(favouritesProvider);
     final followedClubs = ref.watch(followedClubsProvider).valueOrNull ?? {};
@@ -110,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
-          ref.invalidate(upcomingEventsProvider);
+          ref.invalidate(openEventsProvider);
           ref.invalidate(categoriesProvider);
           await ref.read(favouritesProvider.notifier).refresh();
         },
@@ -120,7 +120,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           error: (e, _) => ErrorState(
             title: 'Events unavailable',
             message: 'Could not load events.',
-            onRetry: () => ref.invalidate(upcomingEventsProvider),
+            onRetry: () => ref.invalidate(openEventsProvider),
           ),
           data: (events) {
             final filtered = _filteredEvents(

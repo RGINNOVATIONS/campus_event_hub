@@ -23,6 +23,20 @@ class DemoEventRepository implements EventRepository {
   }
 
   @override
+  Future<Result<List<EventModel>>> openPublishedEvents() async {
+    final now = DateTime.now().toUtc();
+    final open = _store.events
+        .where((e) =>
+            (e.status == EventStatus.published ||
+                e.status == EventStatus.postponed) &&
+            (e.registrationDeadline.toUtc().isAfter(now) ||
+                e.registrationDeadline.toUtc().isAtSameMomentAs(now)))
+        .toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+    return Result.ok(open);
+  }
+
+  @override
   Future<Result<List<CategoryModel>>> categories() async =>
       Result.ok([..._store.categories]);
 
