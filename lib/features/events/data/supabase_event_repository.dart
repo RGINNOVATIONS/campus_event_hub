@@ -45,15 +45,24 @@ class SupabaseEventRepository implements EventRepository {
     final resolved = <EventModel>[];
     for (final event in events) {
       if (event.posterPath != null &&
-          event.posterPath!.isNotEmpty &&
+          event.posterPath!.trim().isNotEmpty &&
           !event.posterPath!.startsWith('http')) {
+        final cleanPath = event.posterPath!.startsWith('/')
+            ? event.posterPath!.substring(1)
+            : event.posterPath!;
         try {
           final url = await _client.storage
               .from('event-posters')
-              .createSignedUrl(event.posterPath!, 60 * 60 * 24 * 7); // 7 days
+              .createSignedUrl(cleanPath, 60 * 60 * 24 * 7); // 7 days
           resolved.add(event.copyWith(posterPath: url));
         } catch (_) {
-          resolved.add(event.copyWith(posterPath: null));
+          try {
+            final publicUrl =
+                _client.storage.from('event-posters').getPublicUrl(cleanPath);
+            resolved.add(event.copyWith(posterPath: publicUrl));
+          } catch (_) {
+            resolved.add(event.copyWith(posterPath: null));
+          }
         }
       } else {
         resolved.add(event);
@@ -105,12 +114,14 @@ class SupabaseEventRepository implements EventRepository {
   @override
   Future<Result<EventModel>> eventById(String id) async {
     try {
-      final row = await _client
+      final rows = await _client
           .from('events')
           .select(_eventSelect)
-          .eq('id', id)
-          .single();
-      final resolved = await _resolvePosters([_mapRow(row)]);
+          .eq('id', id);
+      if ((rows as List).isEmpty) {
+        return Result.err(const ValidationFailure('Event not found.'));
+      }
+      final resolved = await _resolvePosters([_mapRow(rows.first)]);
       return Result.ok(resolved.first);
     } catch (e) {
       return Result.err(

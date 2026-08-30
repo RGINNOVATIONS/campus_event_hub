@@ -1,6 +1,7 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/services/csv_export_service.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/attendance/presentation/screens/attendance_scan_screen.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
@@ -28,6 +29,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
   List<RegistrationRow>? _registrations;
   String? _registrationsError;
   bool _busy = false;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -287,6 +289,22 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                           ),
                         ),
                       AppSecondaryButton(
+                        label: _isExporting ? 'Exporting...' : 'Download CSV',
+                        icon: _isExporting
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : const Icon(Icons.file_download_outlined,
+                                size: 16, color: AppColors.primary),
+                        iconPosition: AppButtonIconPosition.left,
+                        onPressed: (_busy || _isExporting) ? null : _exportCsv,
+                      ),
+                      AppSecondaryButton(
                         label: 'Delete Event',
                         icon: const Icon(Icons.delete_outline_rounded,
                             size: 16, color: AppColors.danger),
@@ -340,14 +358,36 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'Registered Students',
-                        style: AppTextStyles.title,
+                      const Expanded(
+                        child: Text(
+                          'Registered Students',
+                          style: AppTextStyles.title,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: AppSpacing.sm),
                       AppBadge(
                         label: '$totalCount student(s)',
                         tone: AppBadgeTone.neutral,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton(
+                        icon: _isExporting
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.file_download_outlined,
+                                size: 20,
+                                color: AppColors.primary,
+                              ),
+                        tooltip: 'Export student list (CSV)',
+                        onPressed: (_busy || _isExporting) ? null : _exportCsv,
                       ),
                     ],
                   ),
@@ -693,6 +733,76 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _exportCsv() async {
+    setState(() => _isExporting = true);
+    try {
+      final repo = ref.read(organizerRepositoryProvider);
+      final result = await repo.registrationsFor(_currentEvent.id);
+
+      await result.when(
+        ok: (regs) async {
+          if (regs.isEmpty) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('No registrations found to export.'),
+                ),
+              );
+            }
+            return;
+          }
+
+          final csv = CsvExportService.buildStudentListCsv(registrations: regs);
+          final fileName = CsvExportService.sanitizeFileName(
+            _currentEvent.title,
+            DateTime.now(),
+          );
+          final downloadService = ref.read(downloadServiceProvider);
+          final success = await downloadService.saveAndOpenCsv(
+            csvContent: csv,
+            fileName: fileName,
+          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Exported $fileName successfully.'
+                      : 'Saved $fileName.',
+                ),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        },
+        err: (f) async {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Export failed: ${f.message}'),
+                backgroundColor: AppColors.danger,
+              ),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExporting = false);
+      }
+    }
   }
 }
 

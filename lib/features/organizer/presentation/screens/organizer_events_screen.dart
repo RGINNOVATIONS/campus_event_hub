@@ -41,6 +41,8 @@ class OrganizerEventsScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => const CreateEventScreen(),
@@ -484,10 +486,14 @@ class _OrganizerEventCard extends StatelessWidget {
                   const Icon(Icons.calendar_today_outlined,
                       size: 14, color: AppColors.textMuted),
                   const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    dateFmt.format(event.startAt),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
+                  Expanded(
+                    child: Text(
+                      dateFmt.format(event.startAt),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

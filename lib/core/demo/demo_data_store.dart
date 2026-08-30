@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
@@ -51,6 +53,9 @@ class DemoDataStore {
   /// userId -> issued certificates.
   final Map<String, List<CertificateModel>> certificatesByUser = {};
 
+  /// In-memory cache for uploaded poster image bytes in demo mode.
+  final Map<String, Uint8List> posterBytesByPath = {};
+
   /// Resets all seeded/mutated state. Call this from `setUp()` in any
   /// test that mutates the store, since it's a process-wide singleton
   /// and `flutter test` can run multiple tests from the same file in
@@ -62,6 +67,7 @@ class DemoDataStore {
     categoryFollowsByUser.clear();
     notificationsByUser.clear();
     certificatesByUser.clear();
+    posterBytesByPath.clear();
     nextEventSuffix = 1000;
     _seed();
     // Strip posterPath in tests to prevent CachedNetworkImage from causing
@@ -295,23 +301,59 @@ class DemoDataStore {
     registrationsByEvent = {
       'evt-1': [
         const RegistrationRow(
-            userId: 'demo-student-1',
-            studentName: 'Aisha Sharma',
-            attendanceStatus: AttendanceStatus.registered),
+          userId: 'demo-student-1',
+          studentName: 'Aisha Sharma',
+          studentId: 'STU2026041',
+          rollNo: '70012026041',
+          programme: 'B.Tech',
+          branch: 'Computer Engineering (CE)',
+          academicYear: 'Third Year',
+          collegeEmail: 'demo.student@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.registered,
+          attendedAt: null,
+        ),
+        RegistrationRow(
+          userId: 's2',
+          studentName: 'Karan Mehta',
+          studentId: 'STU2026042',
+          rollNo: '70012026042',
+          programme: 'B.Tech',
+          branch: 'Information Technology (IT)',
+          academicYear: 'Second Year',
+          collegeEmail: 'karan.mehta@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.attended,
+          attendedAt: DateTime(2026, 2, 20, 10, 15),
+        ),
         const RegistrationRow(
-            userId: 's2',
-            studentName: 'Karan Mehta',
-            attendanceStatus: AttendanceStatus.attended),
-        const RegistrationRow(
-            userId: 's3',
-            studentName: 'Neha Joshi',
-            attendanceStatus: AttendanceStatus.registered),
+          userId: 's3',
+          studentName: 'Neha Joshi',
+          studentId: 'STU2026043',
+          rollNo: '70012026043',
+          programme: 'B.Pharm',
+          branch: 'N/A',
+          academicYear: 'First Year',
+          collegeEmail: 'neha.joshi@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.registered,
+          attendedAt: null,
+        ),
       ],
       'evt-past-hackathon': [
-        const RegistrationRow(
-            userId: 'demo-student-1',
-            studentName: 'Aisha Sharma',
-            attendanceStatus: AttendanceStatus.attended),
+        RegistrationRow(
+          userId: 'demo-student-1',
+          studentName: 'Aisha Sharma',
+          studentId: 'STU2026041',
+          rollNo: '70012026041',
+          programme: 'B.Tech',
+          branch: 'Computer Engineering (CE)',
+          academicYear: 'Third Year',
+          collegeEmail: 'demo.student@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.attended,
+          attendedAt: DateTime(2025, 11, 15, 9, 30),
+        ),
       ],
     };
 

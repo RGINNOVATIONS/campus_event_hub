@@ -647,42 +647,80 @@ class _PosterPicker extends StatelessWidget {
                       ),
                     ],
                   )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryLight,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add_photo_alternate_outlined,
-                          color: AppColors.primary,
-                          size: 24,
-                        ),
+                : (existingPath != null && existingPath!.trim().isNotEmpty)
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          EventPosterContainer(
+                            imageUrl: existingPath,
+                            fit: BoxFit.cover,
+                            borderRadius: AppRadius.md,
+                          ),
+                          Positioned(
+                            right: 8,
+                            bottom: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: AppRadius.sm,
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.edit_rounded,
+                                      color: Colors.white, size: 12),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Change',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryLight,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.add_photo_alternate_outlined,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          const Text(
+                            'Upload event poster image',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'JPG, PNG or WebP, up to 5 MB',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        existingPath != null
-                            ? 'Poster set — tap to replace'
-                            : 'Upload event poster image',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'JPG, PNG or WebP, up to 5 MB',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
           ),
         ),
       ],

@@ -1,9 +1,12 @@
 import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/clubs/domain/club_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 
 export 'package:campus_event_hub/features/clubs/domain/club_repository.dart'
     show ClubModel;
+export 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart'
+    show RegistrationRow;
 
 class AdminDashboardCounts {
   final int pendingEvents;
@@ -28,4 +31,5 @@ abstract class AdminRepository {
   Future<Result<List<ClubModel>>> clubs();
   Future<Result<void>> verifyClub(String clubId);
   Future<Result<void>> rejectClub(String clubId);
+  Future<Result<List<RegistrationRow>>> registrationsFor(String eventId);
 }

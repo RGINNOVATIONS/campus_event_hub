@@ -24,9 +24,13 @@ class SupabaseAuthRepository implements AuthRepository {
       return;
     }
     try {
-      final row =
-          await _client.from('profiles').select().eq('id', user.id).single();
-      _cached = Profile.fromMap(row);
+      final rows =
+          await _client.from('profiles').select().eq('id', user.id);
+      if ((rows as List).isNotEmpty) {
+        _cached = Profile.fromMap(rows.first);
+      } else {
+        _cached = null;
+      }
     } catch (_) {
       _cached = null;
     }
@@ -72,8 +76,10 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Result<void>> register({
     required String fullName,
     required String collegeEmail,
-    required String collegeId,
-    required String department,
+    required String studentId,
+    required String rollNo,
+    required String programme,
+    required String branch,
     required String academicYear,
     required String password,
   }) async {
@@ -83,8 +89,12 @@ class SupabaseAuthRepository implements AuthRepository {
         password: password,
         data: {
           'full_name': fullName,
-          'college_id': collegeId,
-          'department': department,
+          'student_id': studentId,
+          'college_id': studentId,
+          'roll_no': rollNo,
+          'programme': programme,
+          'branch': branch,
+          'department': branch,
           'academic_year': academicYear,
         },
         // The handle_new_user() trigger creates the profiles row and

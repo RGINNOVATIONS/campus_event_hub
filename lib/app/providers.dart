@@ -3,6 +3,7 @@ import 'package:campus_event_hub/core/services/calendar_service.dart';
 import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
 import 'package:campus_event_hub/core/services/demo_notification_service.dart';
 import 'package:campus_event_hub/core/services/device_token_repository.dart';
+import 'package:campus_event_hub/core/services/download_service.dart';
 import 'package:campus_event_hub/core/services/firebase_notification_service.dart';
 import 'package:campus_event_hub/core/services/notification_service.dart';
 import 'package:campus_event_hub/core/services/supabase_device_token_repository.dart';
@@ -97,3 +98,6 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 
 final calendarServiceProvider =
     Provider<CalendarService>((ref) => CalendarService());
+
+final downloadServiceProvider =
+    Provider<DownloadService>((ref) => const DefaultDownloadService());

@@ -48,15 +48,24 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     final resolved = <EventModel>[];
     for (final event in events) {
       if (event.posterPath != null &&
-          event.posterPath!.isNotEmpty &&
+          event.posterPath!.trim().isNotEmpty &&
           !event.posterPath!.startsWith('http')) {
+        final cleanPath = event.posterPath!.startsWith('/')
+            ? event.posterPath!.substring(1)
+            : event.posterPath!;
         try {
           final url = await _client.storage
               .from('event-posters')
-              .createSignedUrl(event.posterPath!, 60 * 60 * 24 * 7);
+              .createSignedUrl(cleanPath, 60 * 60 * 24 * 7);
           resolved.add(event.copyWith(posterPath: url));
         } catch (_) {
-          resolved.add(event.copyWith(posterPath: null));
+          try {
+            final publicUrl =
+                _client.storage.from('event-posters').getPublicUrl(cleanPath);
+            resolved.add(event.copyWith(posterPath: publicUrl));
+          } catch (_) {
+            resolved.add(event.copyWith(posterPath: null));
+          }
         }
       } else {
         resolved.add(event);
@@ -140,6 +149,15 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     );
   }
 
+  static String? _cleanStoragePath(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    final trimmed = path.trim();
+    if (trimmed.contains('/event-posters/')) {
+      return trimmed.split('/event-posters/').last.split('?').first;
+    }
+    return trimmed;
+  }
+
   @override
   Future<Result<EventModel>> saveDraft(DraftEventInput input) async {
     try {
@@ -153,6 +171,8 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'You are not a verified organizer for any club.'));
       }
 
+      final cleanPoster = _cleanStoragePath(input.posterPath);
+
       if (input.id == null) {
         final payload = {
           'club_id': clubId,
@@ -160,7 +180,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
           'title': input.title,
           'short_description': input.shortDescription,
           'full_description': input.fullDescription,
-          'poster_path': input.posterPath,
+          'poster_path': cleanPoster,
           'venue': input.venue,
           'start_at': input.startAt.toIso8601String(),
           'end_at': input.endAt.toIso8601String(),
@@ -174,12 +194,14 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
           'created_by': uid,
           'status': 'draft',
         };
-        final row = await _client
+        final rows = await _client
             .from('events')
             .insert(payload)
-            .select(_eventSelect)
-            .single();
-        final resolved = await _resolvePosters([_mapRow(row)]);
+            .select(_eventSelect);
+        if ((rows as List).isEmpty) {
+          return Result.err(const UnknownFailure('Could not create event.'));
+        }
+        final resolved = await _resolvePosters([_mapRow(rows.first)]);
         return Result.ok(resolved.first);
       } else {
         // Update existing event without overwriting existing status
@@ -195,7 +217,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'p_end_at': input.endAt.toIso8601String(),
             'p_registration_deadline':
                 input.registrationDeadline.toIso8601String(),
-            'p_poster_path': input.posterPath,
+            'p_poster_path': cleanPoster,
             'p_eligibility': input.eligibility,
             'p_rules': input.rules,
             'p_fee_text': input.feeText,
@@ -212,7 +234,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'title': input.title,
             'short_description': input.shortDescription,
             'full_description': input.fullDescription,
-            'poster_path': input.posterPath,
+            'poster_path': cleanPoster,
             'venue': input.venue,
             'start_at': input.startAt.toIso8601String(),
             'end_at': input.endAt.toIso8601String(),
@@ -225,13 +247,16 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'contact_email': input.contactEmail,
             'contact_phone': input.contactPhone,
           };
-          final row = await _client
+          final rows = await _client
               .from('events')
               .update(updatePayload)
               .eq('id', input.id!)
-              .select(_eventSelect)
-              .single();
-          final resolved = await _resolvePosters([_mapRow(row)]);
+              .select(_eventSelect);
+          if ((rows as List).isEmpty) {
+            return Result.err(const AuthorizationFailure(
+                'You are not authorized to update this event or event not found.'));
+          }
+          final resolved = await _resolvePosters([_mapRow(rows.first)]);
           return Result.ok(resolved.first);
         }
       }
@@ -279,13 +304,40 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
           'postponement_reason': reason,
           'status': 'postponed',
         };
-        await _client
-            .from('events')
-            .update(updatePayload)
-            .eq('id', eventId)
-            .select('id')
-            .single();
-        return Result.ok(null);
+        try {
+          final rows = await _client
+              .from('events')
+              .update(updatePayload)
+              .eq('id', eventId)
+              .select('id');
+          if ((rows as List).isEmpty) {
+            return Result.err(const AuthorizationFailure(
+                'You are not authorized to postpone this event.'));
+          }
+          return Result.ok(null);
+        } on PostgrestException catch (pe) {
+          // If schema cache does not have postponement_reason column or status constraint
+          if (pe.code == 'PGRST204' ||
+              pe.message.contains('postponement_reason') ||
+              pe.message.contains('status')) {
+            final safePayload = {
+              'start_at': startAt.toIso8601String(),
+              'end_at': endAt.toIso8601String(),
+              'registration_deadline': registrationDeadline.toIso8601String(),
+            };
+            final rows = await _client
+                .from('events')
+                .update(safePayload)
+                .eq('id', eventId)
+                .select('id');
+            if ((rows as List).isEmpty) {
+              return Result.err(const AuthorizationFailure(
+                  'You are not authorized to postpone this event.'));
+            }
+            return Result.ok(null);
+          }
+          rethrow;
+        }
       }
     } catch (e) {
       return Result.err(
@@ -325,16 +377,40 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
     try {
       final rows = await _client
           .from('enrolments')
-          .select('user_id, attendance_status, profiles!user_id(full_name)')
+          .select('''
+            user_id,
+            attendance_status,
+            attended_at,
+            profiles!user_id(*)
+          ''')
           .eq('event_id', eventId);
-      return Result.ok((rows as List)
-          .map((r) => RegistrationRow(
-                userId: r['user_id'] as String,
-                studentName: (r['profiles']?['full_name'] as String?) ?? '',
-                attendanceStatus:
-                    AttendanceStatusX.fromDb(r['attendance_status'] as String),
-              ))
-          .toList());
+
+      return Result.ok((rows as List).map((r) {
+        final profile = r['profiles'] as Map<String, dynamic>?;
+        final studentId = (profile?['student_id'] ?? profile?['college_id'] ?? 'N/A') as String;
+        final branchVal = (profile?['branch'] as String?)?.trim();
+        final deptVal = (profile?['department'] as String?)?.trim();
+        final branch = (branchVal != null && branchVal.isNotEmpty)
+            ? branchVal
+            : (deptVal != null && deptVal.isNotEmpty ? deptVal : 'N/A');
+
+        return RegistrationRow(
+          userId: r['user_id'] as String,
+          studentName: (profile?['full_name'] as String?) ?? '',
+          studentId: studentId,
+          rollNo: (profile?['roll_no'] as String?) ?? 'N/A',
+          programme: (profile?['programme'] as String?) ?? 'N/A',
+          branch: branch,
+          academicYear: (profile?['academic_year'] as String?) ?? 'N/A',
+          collegeEmail: (profile?['college_email'] as String?) ?? 'N/A',
+          registrationStatus: 'registered',
+          attendanceStatus:
+              AttendanceStatusX.fromDb(r['attendance_status'] as String),
+          attendedAt: r['attended_at'] != null
+              ? DateTime.tryParse(r['attended_at'] as String)
+              : null,
+        );
+      }).toList());
     } catch (e) {
       return Result.err(mapExceptionToFailure(e,
           fallbackMessage: 'Could not load registrations.'));
@@ -359,15 +435,18 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<void>> markEventCompleted(String eventId) async {
     try {
-      await _client
+      final rows = await _client
           .from('events')
           .update({
             'status': 'completed',
             'completed_at': DateTime.now().toIso8601String(),
           })
           .eq('id', eventId)
-          .select('id')
-          .single();
+          .select('id');
+      if ((rows as List).isEmpty) {
+        return Result.err(const AuthorizationFailure(
+            'Event could not be updated. You may lack permission.'));
+      }
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));

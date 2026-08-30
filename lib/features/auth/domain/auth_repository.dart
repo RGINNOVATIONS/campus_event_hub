@@ -8,8 +8,10 @@ abstract class AuthRepository {
   Future<Result<void>> register({
     required String fullName,
     required String collegeEmail,
-    required String collegeId,
-    required String department,
+    required String studentId,
+    required String rollNo,
+    required String programme,
+    required String branch,
     required String academicYear,
     required String password,
   });

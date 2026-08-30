@@ -13,6 +13,7 @@ import 'package:campus_event_hub/features/enrolments/presentation/screens/qr_pas
 import 'package:campus_event_hub/features/events/presentation/screens/event_details_screen.dart';
 import 'package:campus_event_hub/features/notifications/presentation/screens/notification_centre_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_shell.dart';
+import 'package:campus_event_hub/features/profile/presentation/screens/profile_screen.dart';
 import 'package:campus_event_hub/features/student/student_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,9 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Prevent non-students from entering the student shell or student-only screens
-      if ((state.matchedLocation == '/student' ||
-              state.matchedLocation.startsWith('/student/notifications') ||
-              state.matchedLocation.startsWith('/student/my-events')) &&
+      if (state.matchedLocation.startsWith('/student') &&
           profile.role != UserRole.student) {
         return _homeFor(profile.role);
       }
@@ -106,6 +105,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/student/notification-preferences',
         builder: (context, state) => const NotificationPreferencesScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
           path: '/organizer',

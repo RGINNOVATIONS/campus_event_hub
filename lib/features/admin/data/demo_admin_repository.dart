@@ -80,6 +80,12 @@ class DemoAdminRepository implements AdminRepository {
     return Result.ok(null);
   }
 
+  @override
+  Future<Result<List<RegistrationRow>>> registrationsFor(String eventId) async {
+    final list = _store.registrationsByEvent[eventId] ?? [];
+    return Result.ok([...list]);
+  }
+
   void _replaceClubStatus(String clubId, ClubStatus status) {
     final i = _store.clubs.indexWhere((c) => c.id == clubId);
     if (i == -1) return;

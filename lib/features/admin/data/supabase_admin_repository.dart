@@ -44,15 +44,24 @@ class SupabaseAdminRepository implements AdminRepository {
     final resolved = <EventModel>[];
     for (final event in events) {
       if (event.posterPath != null &&
-          event.posterPath!.isNotEmpty &&
+          event.posterPath!.trim().isNotEmpty &&
           !event.posterPath!.startsWith('http')) {
+        final cleanPath = event.posterPath!.startsWith('/')
+            ? event.posterPath!.substring(1)
+            : event.posterPath!;
         try {
           final url = await _client.storage
               .from('event-posters')
-              .createSignedUrl(event.posterPath!, 60 * 60 * 24 * 7);
+              .createSignedUrl(cleanPath, 60 * 60 * 24 * 7);
           resolved.add(event.copyWith(posterPath: url));
         } catch (_) {
-          resolved.add(event.copyWith(posterPath: null));
+          try {
+            final publicUrl =
+                _client.storage.from('event-posters').getPublicUrl(cleanPath);
+            resolved.add(event.copyWith(posterPath: publicUrl));
+          } catch (_) {
+            resolved.add(event.copyWith(posterPath: null));
+          }
         }
       } else {
         resolved.add(event);
@@ -155,12 +164,15 @@ class SupabaseAdminRepository implements AdminRepository {
   @override
   Future<Result<void>> cancelEvent(String eventId) async {
     try {
-      await _client
+      final rows = await _client
           .from('events')
           .update({'status': 'cancelled'})
           .eq('id', eventId)
-          .select('id')
-          .single();
+          .select('id');
+      if ((rows as List).isEmpty) {
+        return Result.err(const AuthorizationFailure(
+            'Event not found or not authorized to cancel.'));
+      }
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
@@ -192,7 +204,7 @@ class SupabaseAdminRepository implements AdminRepository {
       if (uid == null) {
         return Result.err(const AuthFailure('User not authenticated.'));
       }
-      await _client
+      final rows = await _client
           .from('clubs')
           .update({
             'verification_status': 'verified',
@@ -200,8 +212,11 @@ class SupabaseAdminRepository implements AdminRepository {
             'verified_at': DateTime.now().toIso8601String(),
           })
           .eq('id', clubId)
-          .select('id')
-          .single();
+          .select('id');
+      if ((rows as List).isEmpty) {
+        return Result.err(const AuthorizationFailure(
+            'Club not found or not authorized to verify.'));
+      }
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
@@ -211,15 +226,63 @@ class SupabaseAdminRepository implements AdminRepository {
   @override
   Future<Result<void>> rejectClub(String clubId) async {
     try {
-      await _client
+      final rows = await _client
           .from('clubs')
           .update({'verification_status': 'rejected'})
           .eq('id', clubId)
-          .select('id')
-          .single();
+          .select('id');
+      if ((rows as List).isEmpty) {
+        return Result.err(const AuthorizationFailure(
+            'Club not found or not authorized to reject.'));
+      }
       return Result.ok(null);
     } catch (e) {
       return Result.err(mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Result<List<RegistrationRow>>> registrationsFor(String eventId) async {
+    try {
+      final rows = await _client
+          .from('enrolments')
+          .select('''
+            user_id,
+            attendance_status,
+            attended_at,
+            profiles!user_id(*)
+          ''')
+          .eq('event_id', eventId);
+
+      return Result.ok((rows as List).map((r) {
+        final profile = r['profiles'] as Map<String, dynamic>?;
+        final studentId = (profile?['student_id'] ?? profile?['college_id'] ?? 'N/A') as String;
+        final branchVal = (profile?['branch'] as String?)?.trim();
+        final deptVal = (profile?['department'] as String?)?.trim();
+        final branch = (branchVal != null && branchVal.isNotEmpty)
+            ? branchVal
+            : (deptVal != null && deptVal.isNotEmpty ? deptVal : 'N/A');
+
+        return RegistrationRow(
+          userId: r['user_id'] as String,
+          studentName: (profile?['full_name'] as String?) ?? '',
+          studentId: studentId,
+          rollNo: (profile?['roll_no'] as String?) ?? 'N/A',
+          programme: (profile?['programme'] as String?) ?? 'N/A',
+          branch: branch,
+          academicYear: (profile?['academic_year'] as String?) ?? 'N/A',
+          collegeEmail: (profile?['college_email'] as String?) ?? 'N/A',
+          registrationStatus: 'registered',
+          attendanceStatus:
+              AttendanceStatusX.fromDb(r['attendance_status'] as String),
+          attendedAt: r['attended_at'] != null
+              ? DateTime.tryParse(r['attended_at'] as String)
+              : null,
+        );
+      }).toList());
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Could not load registrations.'));
     }
   }
 }

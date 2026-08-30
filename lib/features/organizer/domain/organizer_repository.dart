@@ -23,11 +23,28 @@ class OrganizerDashboardCounts {
 class RegistrationRow {
   final String userId;
   final String studentName;
+  final String studentId;
+  final String rollNo;
+  final String programme;
+  final String branch;
+  final String academicYear;
+  final String collegeEmail;
+  final String registrationStatus;
   final AttendanceStatus attendanceStatus;
+  final DateTime? attendedAt;
+
   const RegistrationRow({
     required this.userId,
     required this.studentName,
+    this.studentId = 'N/A',
+    this.rollNo = 'N/A',
+    this.programme = 'N/A',
+    this.branch = 'N/A',
+    this.academicYear = 'N/A',
+    this.collegeEmail = 'N/A',
+    this.registrationStatus = 'registered',
     required this.attendanceStatus,
+    this.attendedAt,
   });
 }
 

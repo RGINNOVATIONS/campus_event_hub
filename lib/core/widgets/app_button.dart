@@ -126,7 +126,11 @@ class _ButtonContent extends StatelessWidget {
     final text = Text(
       label,
       overflow: TextOverflow.ellipsis,
-      style: AppTextStyles.label,
+      style: const TextStyle(
+        fontSize: 13,
+        height: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
     );
 
     if (icon == null) return text;

@@ -68,8 +68,11 @@ class SupabaseClubRepository implements ClubRepository {
   @override
   Future<Result<ClubModel>> clubById(String id) async {
     try {
-      final row = await _client.from('clubs').select().eq('id', id).single();
-      return Result.ok(_mapClub(row));
+      final rows = await _client.from('clubs').select().eq('id', id);
+      if ((rows as List).isEmpty) {
+        return Result.err(const ValidationFailure('Club not found.'));
+      }
+      return Result.ok(_mapClub(rows.first));
     } catch (e) {
       return Result.err(
           mapExceptionToFailure(e, fallbackMessage: 'Club not found.'));

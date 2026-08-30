@@ -267,23 +267,24 @@ class _BrandingHero extends StatelessWidget {
         ScaleTransition(
           scale: pulseAnimation,
           child: Container(
-            width: 72,
-            height: 72,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: AppRadius.lg,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withValues(alpha: 0.25),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.school_rounded,
-              color: AppColors.textOnPrimary,
-              size: 36,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/images/Campus_Event_logo.png',
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

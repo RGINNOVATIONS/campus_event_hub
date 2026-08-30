@@ -1,8 +1,8 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
-import 'package:campus_event_hub/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Clean, responsive profile avatar button for the top-right of Organizer AppBars.
 class OrganizerProfileButton extends ConsumerWidget {
@@ -24,11 +24,7 @@ class OrganizerProfileButton extends ConsumerWidget {
             color: Colors.transparent,
             shape: const CircleBorder(),
             child: InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
+              onTap: () => context.push('/profile'),
               customBorder: const CircleBorder(),
               child: Container(
                 width: 36,

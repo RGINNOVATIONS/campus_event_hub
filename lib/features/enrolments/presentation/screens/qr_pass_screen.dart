@@ -180,22 +180,29 @@ class QrPassScreen extends ConsumerWidget {
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const Icon(Icons.person_outline,
                                           size: 16, color: AppColors.textSecondary),
                                       const SizedBox(width: AppSpacing.xs),
-                                      Text(
-                                        profile?.fullName ?? 'Student',
-                                        style: AppTextStyles.label,
+                                      Flexible(
+                                        child: Text(
+                                          profile?.fullName ?? 'Student',
+                                          style: AppTextStyles.label,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                      if (profile?.collegeId != null &&
-                                          profile!.collegeId.isNotEmpty) ...[
+                                      if (profile?.studentId != null &&
+                                          profile!.studentId.isNotEmpty) ...[
                                         const SizedBox(width: AppSpacing.sm),
                                         Text(
-                                          '• ${profile.collegeId}',
+                                          '• ${profile.studentId}',
                                           style: AppTextStyles.caption.copyWith(
                                             color: AppColors.textMuted,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ],

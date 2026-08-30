@@ -1,8 +1,10 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
+import 'package:campus_event_hub/core/services/csv_export_service.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
+import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -381,7 +383,10 @@ class PendingEventsScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: AppColors.textOnPrimary,
+            ),
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: const Text('Reject'),
           ),
@@ -694,6 +699,14 @@ class AdminCalendarScreen extends ConsumerWidget {
                         ),
                       ),
 
+                      // Export CSV action
+                      IconButton(
+                        icon: const Icon(Icons.file_download_outlined,
+                            color: AppColors.primary),
+                        tooltip: 'Export student list (CSV)',
+                        onPressed: () => _exportCsv(context, ref, e),
+                      ),
+
                       // Cancel action
                       IconButton(
                         icon: const Icon(Icons.block, color: AppColors.danger),
@@ -709,6 +722,71 @@ class AdminCalendarScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Future<void> _exportCsv(
+      BuildContext context, WidgetRef ref, EventModel event) async {
+    try {
+      final res =
+          await ref.read(adminRepositoryProvider).registrationsFor(event.id);
+      await res.when(
+        ok: (regs) async {
+          if (regs.isEmpty) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('No registrations found to export.'),
+                ),
+              );
+            }
+            return;
+          }
+
+          final csv = CsvExportService.buildStudentListCsv(registrations: regs);
+          final fileName = CsvExportService.sanitizeFileName(
+            event.title,
+            DateTime.now(),
+          );
+          final downloadService = ref.read(downloadServiceProvider);
+          final success = await downloadService.saveAndOpenCsv(
+            csvContent: csv,
+            fileName: fileName,
+          );
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Exported $fileName successfully.'
+                      : 'Saved $fileName.',
+                ),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        },
+        err: (f) async {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Export failed: ${f.message}'),
+                backgroundColor: AppColors.danger,
+              ),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _confirmCancel(
@@ -729,7 +807,10 @@ class AdminCalendarScreen extends ConsumerWidget {
             child: const Text('Back'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: AppColors.textOnPrimary,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Cancel Event'),
           ),

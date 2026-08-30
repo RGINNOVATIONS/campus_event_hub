@@ -1,6 +1,7 @@
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
+import 'package:campus_event_hub/features/auth/domain/academic_options.dart';
 import 'package:campus_event_hub/features/auth/domain/profile.dart';
 import 'package:campus_event_hub/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +19,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullName = TextEditingController();
   final _email = TextEditingController();
-  final _collegeId = TextEditingController();
-  final _department = TextEditingController();
-  final _academicYear = TextEditingController();
+  final _studentId = TextEditingController();
+  final _rollNo = TextEditingController();
+  String? _selectedProgramme;
+  String? _selectedBranch;
+  String? _selectedAcademicYear;
   final _password = TextEditingController();
   final _confirmPassword = TextEditingController();
   bool _acceptedTerms = false;
@@ -40,9 +43,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void dispose() {
     _fullName.dispose();
     _email.dispose();
-    _collegeId.dispose();
-    _department.dispose();
-    _academicYear.dispose();
+    _studentId.dispose();
+    _rollNo.dispose();
     _password.dispose();
     _confirmPassword.dispose();
     super.dispose();
@@ -182,6 +184,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       builder: (context, constraints) {
                                         final twoColumns =
                                             constraints.maxWidth >= 560;
+                                        final hasBranches = _selectedProgramme !=
+                                                null &&
+                                            (programmeBranches[_selectedProgramme]
+                                                    ?.isNotEmpty ??
+                                                false);
+
                                         final personalFields = [
                                           TextFormField(
                                             controller: _fullName,
@@ -209,10 +217,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                                     v ?? '', _allowedDomains),
                                           ),
                                           TextFormField(
-                                            controller: _collegeId,
+                                            controller: _studentId,
                                             decoration: const InputDecoration(
-                                              labelText:
-                                                  'Student / employee ID',
+                                              labelText: 'Student ID',
                                               prefixIcon:
                                                   Icon(Icons.badge_outlined),
                                             ),
@@ -222,27 +229,95 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                                     : null,
                                           ),
                                           TextFormField(
-                                            controller: _department,
+                                            controller: _rollNo,
                                             decoration: const InputDecoration(
-                                              labelText: 'Department',
-                                              prefixIcon: Icon(
-                                                  Icons.apartment_outlined),
+                                              labelText: 'Roll No',
+                                              prefixIcon:
+                                                  Icon(Icons.numbers_outlined),
                                             ),
                                             validator: (v) =>
                                                 (v == null || v.trim().isEmpty)
                                                     ? 'Required'
                                                     : null,
                                           ),
-                                          TextFormField(
-                                            controller: _academicYear,
+                                          DropdownButtonFormField<String>(
+                                            key: ValueKey('prog_$_selectedProgramme'),
+                                            initialValue: _selectedProgramme,
+                                            isExpanded: true,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Programme',
+                                              prefixIcon:
+                                                  Icon(Icons.school_outlined),
+                                            ),
+                                            items: programmeBranches.keys
+                                                .map((p) => DropdownMenuItem(
+                                                      value: p,
+                                                      child: Text(p,
+                                                          overflow: TextOverflow
+                                                              .ellipsis),
+                                                    ))
+                                                .toList(),
+                                            onChanged: (val) {
+                                              setState(() {
+                                                _selectedProgramme = val;
+                                                _selectedBranch = null;
+                                              });
+                                            },
+                                            validator: (v) =>
+                                                (v == null || v.isEmpty)
+                                                    ? 'Please select a programme'
+                                                    : null,
+                                          ),
+                                          if (hasBranches)
+                                            DropdownButtonFormField<String>(
+                                              key: ValueKey('branch_${_selectedProgramme}_$_selectedBranch'),
+                                              initialValue: _selectedBranch,
+                                              isExpanded: true,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Branch',
+                                                prefixIcon: Icon(Icons
+                                                    .apartment_outlined),
+                                              ),
+                                              items: (programmeBranches[
+                                                          _selectedProgramme] ??
+                                                      [])
+                                                  .map((b) => DropdownMenuItem(
+                                                        value: b,
+                                                        child: Text(b,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis),
+                                                      ))
+                                                  .toList(),
+                                              onChanged: (val) => setState(
+                                                  () => _selectedBranch = val),
+                                              validator: (v) =>
+                                                  (v == null || v.isEmpty)
+                                                      ? 'Please select a branch'
+                                                      : null,
+                                            ),
+                                          DropdownButtonFormField<String>(
+                                            key: ValueKey('year_$_selectedAcademicYear'),
+                                            initialValue: _selectedAcademicYear,
+                                            isExpanded: true,
                                             decoration: const InputDecoration(
                                               labelText: 'Academic year',
                                               prefixIcon: Icon(Icons
                                                   .calendar_month_outlined),
                                             ),
+                                            items: academicYears
+                                                .map((y) => DropdownMenuItem(
+                                                      value: y,
+                                                      child: Text(y,
+                                                          overflow: TextOverflow
+                                                              .ellipsis),
+                                                    ))
+                                                .toList(),
+                                            onChanged: (val) => setState(() =>
+                                                _selectedAcademicYear = val),
                                             validator: (v) =>
-                                                (v == null || v.trim().isEmpty)
-                                                    ? 'Required'
+                                                (v == null || v.isEmpty)
+                                                    ? 'Please select an academic year'
                                                     : null,
                                           ),
                                         ];
@@ -465,12 +540,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedProgramme == null || _selectedAcademicYear == null) return;
+
+    final branches = programmeBranches[_selectedProgramme] ?? [];
+    final String resolvedBranch;
+    if (branches.isNotEmpty) {
+      if (_selectedBranch == null || !branches.contains(_selectedBranch)) {
+        return;
+      }
+      resolvedBranch = _selectedBranch!;
+    } else {
+      resolvedBranch = 'N/A';
+    }
+
     await ref.read(authControllerProvider.notifier).register(
           fullName: _fullName.text.trim(),
           collegeEmail: _email.text.trim(),
-          collegeId: _collegeId.text.trim(),
-          department: _department.text.trim(),
-          academicYear: _academicYear.text.trim(),
+          studentId: _studentId.text.trim(),
+          rollNo: _rollNo.text.trim(),
+          programme: _selectedProgramme!,
+          branch: resolvedBranch,
+          academicYear: _selectedAcademicYear!,
           password: _password.text,
         );
   }

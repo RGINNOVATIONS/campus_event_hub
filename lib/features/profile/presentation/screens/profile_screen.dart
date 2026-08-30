@@ -12,9 +12,70 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final isStudent = profile?.role.name == 'student';
+    final isOrganizer = profile?.role.name == 'organizer';
     final initial = (profile?.fullName.isNotEmpty ?? false)
         ? profile!.fullName[0].toUpperCase()
         : '?';
+
+
+    // Build role-aware identity rows (filtering out empty/placeholder values)
+    final infoRows = <_ProfileInfoData>[];
+    if (profile != null) {
+      if (isStudent) {
+        if (_isValid(profile.studentId)) {
+          infoRows.add(const _ProfileInfoData(
+            label: 'Student ID',
+            icon: Icons.badge_outlined,
+          ).withValue(profile.studentId));
+        }
+        if (_isValid(profile.rollNo)) {
+          infoRows.add(const _ProfileInfoData(
+            label: 'Roll No',
+            icon: Icons.numbers_outlined,
+          ).withValue(profile.rollNo));
+        }
+        if (_isValid(profile.programme)) {
+          infoRows.add(const _ProfileInfoData(
+            label: 'Programme',
+            icon: Icons.school_outlined,
+          ).withValue(profile.programme));
+        }
+        if (_isValid(profile.branch)) {
+          infoRows.add(const _ProfileInfoData(
+            label: 'Branch',
+            icon: Icons.apartment_outlined,
+          ).withValue(profile.branch));
+        }
+        if (_isValid(profile.academicYear)) {
+          infoRows.add(const _ProfileInfoData(
+            label: 'Academic year',
+            icon: Icons.calendar_month_outlined,
+          ).withValue(profile.academicYear));
+        }
+      } else {
+        final idLabel = isOrganizer ? 'Organizer ID' : 'Staff ID';
+        if (_isValid(profile.studentId)) {
+          infoRows.add(_ProfileInfoData(
+            label: idLabel,
+            icon: Icons.badge_outlined,
+          ).withValue(profile.studentId));
+        }
+      }
+
+      if (_isValid(profile.collegeEmail)) {
+        infoRows.add(const _ProfileInfoData(
+          label: 'Email',
+          icon: Icons.email_outlined,
+        ).withValue(profile.collegeEmail));
+      }
+
+      infoRows.add(const _ProfileInfoData(
+        label: 'Role',
+        icon: Icons.person_outline,
+      ).withValue(
+        profile.role.name[0].toUpperCase() + profile.role.name.substring(1),
+      ));
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -43,64 +104,63 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       // Avatar circle
                       Container(
-                        width: 80,
-                        height: 80,
+                        width: 84,
+                        height: 84,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.textOnPrimary.withValues(alpha: 0.15),
+                          color: AppColors.textOnPrimary.withValues(alpha: 0.18),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color:
-                                AppColors.textOnPrimary.withValues(alpha: 0.3),
-                            width: 2,
+                            color: AppColors.textOnPrimary.withValues(alpha: 0.35),
+                            width: 3,
                           ),
                         ),
                         child: Text(
                           initial,
                           style: AppTextStyles.headline.copyWith(
                             color: AppColors.textOnPrimary,
-                            fontSize: 32,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: 14),
 
                       // Name
                       Text(
                         profile?.fullName ?? 'Loading...',
                         style: AppTextStyles.title.copyWith(
                           color: AppColors.textOnPrimary,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w700,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: 3),
 
                       // Email
                       Text(
                         profile?.collegeEmail ?? '',
                         style: AppTextStyles.bodySecondary.copyWith(
-                          color:
-                              AppColors.textOnPrimary.withValues(alpha: 0.75),
+                          color: AppColors.textOnPrimary.withValues(alpha: 0.82),
+                          fontSize: 13,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: 12),
 
                       // Role badge
                       if (profile != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.xs,
+                            horizontal: 14,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                AppColors.textOnPrimary.withValues(alpha: 0.15),
+                            color: AppColors.textOnPrimary.withValues(alpha: 0.16),
                             borderRadius: AppRadius.full,
                             border: Border.all(
-                              color: AppColors.textOnPrimary
-                                  .withValues(alpha: 0.2),
+                              color: AppColors.textOnPrimary.withValues(alpha: 0.28),
                             ),
                           ),
                           child: Text(
@@ -108,7 +168,8 @@ class ProfileScreen extends ConsumerWidget {
                                 profile.role.name.substring(1),
                             style: const TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3,
                               color: AppColors.textOnPrimary,
                             ),
                           ),
@@ -140,33 +201,17 @@ class ProfileScreen extends ConsumerWidget {
                         title: 'Campus Identity',
                         icon: Icons.badge_outlined,
                         children: [
-                          _ProfileInfoRow(
-                            label: 'College ID',
-                            value: profile?.collegeId ?? '—',
-                            icon: Icons.badge_outlined,
-                          ),
-                          _ProfileInfoRow(
-                            label: 'Department',
-                            value: profile?.department ?? '—',
-                            icon: Icons.apartment_outlined,
-                          ),
-                          _ProfileInfoRow(
-                            label: 'Academic year',
-                            value: profile?.academicYear ?? '—',
-                            icon: Icons.calendar_month_outlined,
-                          ),
-                          _ProfileInfoRow(
-                            label: 'Role',
-                            value: profile != null
-                                ? profile.role.name[0].toUpperCase() +
-                                    profile.role.name.substring(1)
-                                : '—',
-                            icon: Icons.person_outline,
-                            isLast: true,
-                          ),
+                          for (int i = 0; i < infoRows.length; i++)
+                            _ProfileInfoRow(
+                              label: infoRows[i].label,
+                              value: infoRows[i].value,
+                              icon: infoRows[i].icon,
+                              isLast: i == infoRows.length - 1,
+                            ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),
+
 
                       // ── Actions card ────────────────────────────────
                       _ProfileCard(
@@ -209,18 +254,18 @@ class ProfileScreen extends ConsumerWidget {
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.surface,
-                          borderRadius: AppRadius.lg,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.border),
                           boxShadow: AppShadows.sm,
                         ),
                         child: Material(
                           color: Colors.transparent,
-                          borderRadius: AppRadius.lg,
+                          borderRadius: BorderRadius.circular(16),
                           child: InkWell(
                             onTap: () => ref
                                 .read(authControllerProvider.notifier)
                                 .logout(),
-                            borderRadius: AppRadius.lg,
+                            borderRadius: BorderRadius.circular(16),
                             child: Padding(
                               padding: const EdgeInsets.all(AppSpacing.lg),
                               child: Row(
@@ -286,7 +331,7 @@ class _ProfileCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.lg,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: AppShadows.sm,
       ),
@@ -304,20 +349,22 @@ class _ProfileCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: Color(0xFFFFEBEE),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, size: 14, color: AppColors.primary),
+                  child: Icon(icon, size: 16, color: const Color(0xFFC62828)),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   title,
                   style: AppTextStyles.label.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -351,25 +398,35 @@ class _ProfileInfoRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+        vertical: 13,
       ),
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : const Border(bottom: BorderSide(color: AppColors.border)),
+            : const Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: AppColors.textMuted),
+          Icon(icon, size: 18, color: AppColors.textMuted),
           const SizedBox(width: AppSpacing.md),
           SizedBox(
             width: 120,
-            child: Text(label, style: AppTextStyles.bodySecondary),
+            child: Text(
+              label,
+              style: AppTextStyles.bodySecondary.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 13.5,
+              ),
+            ),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppTextStyles.label,
+              style: AppTextStyles.label.copyWith(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
               textAlign: TextAlign.right,
             ),
           ),
@@ -410,33 +467,47 @@ class _ProfileActionTile extends StatelessWidget {
           decoration: BoxDecoration(
             border: isLast
                 ? null
-                : const Border(bottom: BorderSide(color: AppColors.border)),
+                : const Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
           ),
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: Color(0xFFFFEBEE),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 18, color: AppColors.primary),
+                child: Icon(icon, size: 18, color: const Color(0xFFC62828)),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: AppTextStyles.label),
-                    Text(subtitle, style: AppTextStyles.caption),
+                    Text(
+                      label,
+                      style: AppTextStyles.label.copyWith(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const Icon(
                 Icons.chevron_right,
-                color: AppColors.textMuted,
+                color: Color(0xFF9E9E9E),
                 size: 20,
               ),
             ],
@@ -446,3 +517,30 @@ class _ProfileActionTile extends StatelessWidget {
     );
   }
 }
+
+// ── Profile data helper ──────────────────────────────────────────────────────
+
+bool _isValid(String? value) {
+  if (value == null) return false;
+  final trimmed = value.trim();
+  return trimmed.isNotEmpty && trimmed != '—' && trimmed.toUpperCase() != 'N/A';
+}
+
+class _ProfileInfoData {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _ProfileInfoData({
+    required this.label,
+    this.value = '',
+    required this.icon,
+  });
+
+  _ProfileInfoData withValue(String val) => _ProfileInfoData(
+        label: label,
+        value: val,
+        icon: icon,
+      );
+}
+

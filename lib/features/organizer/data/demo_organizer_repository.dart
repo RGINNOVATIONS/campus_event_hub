@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:campus_event_hub/core/demo/demo_data_store.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/errors/app_failure.dart';
@@ -238,11 +240,9 @@ class DemoOrganizerRepository implements OrganizerRepository {
   @override
   Future<Result<String>> uploadPoster(
       {required List<int> bytes, required String fileExtension}) async {
-    // Demo mode never touches network storage. The organizer form still
-    // gets a real preview from the picked bytes (rendered client-side);
-    // this marker path just stands in for what would be a Supabase
-    // Storage path in production, so saveDraft() has something to store.
-    return Result.ok(
-        'demo-poster-${DateTime.now().millisecondsSinceEpoch}.$fileExtension');
+    final path =
+        'demo-poster-${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+    _store.posterBytesByPath[path] = Uint8List.fromList(bytes);
+    return Result.ok(path);
   }
 }

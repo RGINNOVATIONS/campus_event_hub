@@ -36,12 +36,15 @@ class SupabaseCertificateRepository implements CertificateRepository {
   @override
   Future<Result<String>> signedDownloadUrl(String certificateId) async {
     try {
-      final row = await _client
+      final rows = await _client
           .from('certificates')
           .select('pdf_path')
-          .eq('id', certificateId)
-          .single();
-      final path = row['pdf_path'] as String;
+          .eq('id', certificateId);
+      if ((rows as List).isEmpty) {
+        return Result.err(const CertificateFailure(
+            'Certificate not found or not authorized.'));
+      }
+      final path = rows.first['pdf_path'] as String;
       // Short-lived signed URL — the `certificates` bucket has no public
       // or authenticated-read policy, so this is the only way in.
       final url =

@@ -248,7 +248,11 @@ class AppTheme {
           disabledForegroundColor: AppColors.textMuted,
           minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
-          textStyle: AppTextStyles.label,
+          textStyle: const TextStyle(
+            fontSize: 13,
+            height: 1.2,
+            fontWeight: FontWeight.w600,
+          ),
           elevation: 0,
         ),
       ),
@@ -260,7 +264,11 @@ class AppTheme {
           disabledForegroundColor: AppColors.textMuted,
           minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
-          textStyle: AppTextStyles.label,
+          textStyle: const TextStyle(
+            fontSize: 13,
+            height: 1.2,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -270,7 +278,11 @@ class AppTheme {
           side: const BorderSide(color: AppColors.borderStrong),
           minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
-          textStyle: AppTextStyles.label,
+          textStyle: const TextStyle(
+            fontSize: 13,
+            height: 1.2,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

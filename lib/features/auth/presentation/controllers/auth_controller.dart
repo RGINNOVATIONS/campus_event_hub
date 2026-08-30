@@ -44,8 +44,10 @@ class AuthController extends StateNotifier<AuthActionState> {
   Future<bool> register({
     required String fullName,
     required String collegeEmail,
-    required String collegeId,
-    required String department,
+    required String studentId,
+    required String rollNo,
+    required String programme,
+    required String branch,
     required String academicYear,
     required String password,
   }) async {
@@ -53,8 +55,10 @@ class AuthController extends StateNotifier<AuthActionState> {
     final result = await _ref.read(authRepositoryProvider).register(
           fullName: fullName,
           collegeEmail: collegeEmail,
-          collegeId: collegeId,
-          department: department,
+          studentId: studentId,
+          rollNo: rollNo,
+          programme: programme,
+          branch: branch,
           academicYear: academicYear,
           password: password,
         );
