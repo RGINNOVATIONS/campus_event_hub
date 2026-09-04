@@ -18,6 +18,13 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
       'contact_name, contact_email, contact_phone, status, rejection_reason, '
       'clubs!club_id(name), categories!category_id(name)';
 
+  static const _imageMimeTypes = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'webp': 'image/webp',
+  };
+
   EventModel _mapRow(Map<String, dynamic> row) => EventModel(
         id: row['id'] as String,
         clubId: row['club_id'] as String,
@@ -477,13 +484,16 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
         return Result.err(const AuthorizationFailure(
             'You are not a verified organizer for any club.'));
       }
+      final cleanExt =
+          fileExtension.toLowerCase().replaceFirst('.', '').trim();
+      final contentType = _imageMimeTypes[cleanExt] ?? 'image/jpeg';
       final path =
-          '$clubId/${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+          '$clubId/${DateTime.now().millisecondsSinceEpoch}.$cleanExt';
       await _client.storage.from('event-posters').uploadBinary(
             path,
             Uint8List.fromList(bytes),
             fileOptions:
-                FileOptions(contentType: 'image/$fileExtension', upsert: true),
+                FileOptions(contentType: contentType, upsert: true),
           );
       return Result.ok(path);
     } catch (e) {

@@ -389,13 +389,29 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         .pickImage(source: ImageSource.gallery, imageQuality: 90);
     if (picked == null) return;
 
-    final ext = picked.name.split('.').last.toLowerCase();
+    var ext = picked.name.split('.').last.toLowerCase();
+    final bytes = await picked.readAsBytes();
+
+    // On iOS, image_picker with imageQuality converts HEIC/HEIF photos to JPEG.
+    // If the picked filename still carries a .heic/.heif extension, verify if the
+    // bytes are JPEG (SOI 0xFF 0xD8) and normalize ext to 'jpg'. Otherwise, show
+    // clear feedback that HEIC is not supported.
+    if (ext == 'heic' || ext == 'heif') {
+      final isJpeg = bytes.length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xD8;
+      if (isJpeg) {
+        ext = 'jpg';
+      } else {
+        setState(() => _error =
+            'HEIC/HEIF images are not supported. Please select a JPG, PNG, or WebP image.');
+        return;
+      }
+    }
+
     const allowed = ['jpg', 'jpeg', 'png', 'webp'];
     if (!allowed.contains(ext)) {
       setState(() => _error = 'Poster must be a JPG, PNG, or WebP image.');
       return;
     }
-    final bytes = await picked.readAsBytes();
     if (bytes.lengthInBytes > 5 * 1024 * 1024) {
       setState(() => _error = 'Poster must be under 5 MB.');
       return;

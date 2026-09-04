@@ -10,6 +10,8 @@
 	<string>Campus Event Hub needs full calendar access so you can add and manage event reminders on your device.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Campus Event Hub requires camera access to scan event attendance QR codes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Campus Event Hub needs photo library access to upload event posters.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
