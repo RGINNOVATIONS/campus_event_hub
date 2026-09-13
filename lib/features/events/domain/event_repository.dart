@@ -40,4 +40,5 @@ abstract class EventRepository {
 
   Future<Result<Map<String, EnrolmentModel>>> myEnrolments();
   Future<Result<EnrolmentModel>> enrol(String eventId);
+  Future<Result<List<EventModel>>> myEnrolledEvents(List<String> eventIds);
 }

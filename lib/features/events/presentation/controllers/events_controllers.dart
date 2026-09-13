@@ -145,3 +145,13 @@ class EnrolmentsController
 final enrolmentsProvider = StateNotifierProvider.autoDispose<
         EnrolmentsController, AsyncValue<Map<String, EnrolmentModel>>>(
     (ref) => EnrolmentsController(ref));
+
+final myEnrolledEventsProvider =
+    FutureProvider.autoDispose<List<EventModel>>((ref) async {
+  final enrolmentsAsync = ref.watch(enrolmentsProvider);
+  final eventIds = enrolmentsAsync.valueOrNull?.keys.toList() ?? [];
+  if (eventIds.isEmpty) return const [];
+  final repo = ref.watch(eventRepositoryProvider);
+  final result = await repo.myEnrolledEvents(eventIds);
+  return result.when(ok: (v) => v, err: (f) => throw f);
+});

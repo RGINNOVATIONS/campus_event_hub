@@ -253,4 +253,23 @@ class SupabaseEventRepository implements EventRepository {
           fallbackMessage: 'Could not enrol in this event.'));
     }
   }
+
+  @override
+  Future<Result<List<EventModel>>> myEnrolledEvents(
+      List<String> eventIds) async {
+    if (eventIds.isEmpty) return Result.ok(const []);
+    try {
+      final rows = await _client
+          .from('events')
+          .select(_eventSelect)
+          .inFilter('id', eventIds);
+      final list = (rows as List)
+          .map((r) => _mapRow(r as Map<String, dynamic>))
+          .toList();
+      return Result.ok(await _resolvePosters(list));
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Could not load your enrolled events.'));
+    }
+  }
 }

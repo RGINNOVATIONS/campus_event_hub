@@ -11,6 +11,7 @@ import 'package:campus_event_hub/features/organizer/presentation/screens/create_
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/widgets/postpone_event_dialog.dart';
+import 'package:campus_event_hub/features/reviews/presentation/controllers/reviews_controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -589,7 +590,9 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                 onPressed: _busy ? null : () => _confirmAndComplete(context),
               ),
 
-            if (event.status == EventStatus.completed)
+            if (event.status == EventStatus.completed) ...[
+              _FeedbackSummaryCard(eventId: event.id),
+              const SizedBox(height: AppSpacing.lg),
               Material(
                 color: AppColors.surface,
                 shape: RoundedRectangleBorder(
@@ -633,6 +636,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                   ),
                 ),
               ),
+            ],
           ],
 
           const SizedBox(height: AppSpacing.xxl),
@@ -927,5 +931,230 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return AppBadge(label: label, tone: tone);
+  }
+}
+
+class _FeedbackSummaryCard extends ConsumerWidget {
+  final String eventId;
+  const _FeedbackSummaryCard({required this.eventId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feedbackAsync = ref.watch(eventFeedbackProvider(eventId));
+
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: AppColors.border),
+        borderRadius: AppRadius.lg,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.star_rounded,
+                  color: Color(0xFFF59E0B),
+                  size: 24,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                const Text(
+                  'Student Feedback',
+                  style: AppTextStyles.title,
+                ),
+                const Spacer(),
+                feedbackAsync.maybeWhen(
+                  data: (summary) => AppBadge(
+                    label:
+                        '${summary.reviewCount} ${summary.reviewCount == 1 ? "review" : "reviews"}',
+                    tone: summary.reviewCount > 0
+                        ? AppBadgeTone.primary
+                        : AppBadgeTone.neutral,
+                  ),
+                  orElse: () => const SizedBox.shrink(),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            feedbackAsync.when(
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              error: (err, _) => Text(
+                'Could not load student feedback.',
+                style: AppTextStyles.bodySecondary
+                    .copyWith(color: AppColors.danger),
+              ),
+              data: (summary) {
+                if (summary.reviewCount == 0) {
+                  return const Text(
+                    'No student feedback submitted yet.',
+                    style: AppTextStyles.bodySecondary,
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Score & rating distribution
+                    Row(
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              summary.averageRating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFF59E0B),
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(5, (i) {
+                                final isFilled =
+                                    i < summary.averageRating.round();
+                                return Icon(
+                                  isFilled
+                                      ? Icons.star_rounded
+                                      : Icons.star_outline_rounded,
+                                  color: const Color(0xFFF59E0B),
+                                  size: 16,
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '${summary.reviewCount} rating${summary.reviewCount == 1 ? "" : "s"}',
+                              style: AppTextStyles.caption
+                                  .copyWith(color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: AppSpacing.xl),
+                        Expanded(
+                          child: Column(
+                            children: List.generate(5, (index) {
+                              final star = 5 - index;
+                              final count =
+                                  summary.ratingDistribution[star] ?? 0;
+                              final fraction = summary.reviewCount > 0
+                                  ? count / summary.reviewCount
+                                  : 0.0;
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 2),
+                                child: Row(
+                                  children: [
+                                    Text('$star',
+                                        style: AppTextStyles.caption),
+                                    const Icon(Icons.star_rounded,
+                                        size: 12,
+                                        color: Color(0xFFF59E0B)),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: fraction,
+                                          backgroundColor:
+                                              AppColors.border,
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<
+                                                  Color>(Color(0xFFF59E0B)),
+                                          minHeight: 6,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    SizedBox(
+                                      width: 20,
+                                      child: Text(
+                                        '$count',
+                                        style: AppTextStyles.caption
+                                            .copyWith(
+                                                color:
+                                                    AppColors.textMuted),
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    const Divider(height: 1, color: AppColors.border),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Student Comments',
+                      style: AppTextStyles.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    ...summary.reviews.map((r) => Container(
+                          margin:
+                              const EdgeInsets.only(bottom: AppSpacing.sm),
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: AppRadius.sm,
+                            border:
+                                Border.all(color: AppColors.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    r.studentName ?? 'Student',
+                                    style: AppTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: List.generate(r.rating, (_) {
+                                      return const Icon(
+                                        Icons.star_rounded,
+                                        size: 14,
+                                        color: Color(0xFFF59E0B),
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              if (r.comment.isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  r.comment,
+                                  style: AppTextStyles.bodySecondary,
+                                ),
+                              ],
+                            ],
+                          ),
+                        )),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

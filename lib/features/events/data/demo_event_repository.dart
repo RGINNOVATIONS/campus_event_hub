@@ -119,4 +119,12 @@ class DemoEventRepository implements EventRepository {
       attendanceStatus: AttendanceStatus.registered,
     ));
   }
+
+  @override
+  Future<Result<List<EventModel>>> myEnrolledEvents(
+      List<String> eventIds) async {
+    final idSet = eventIds.toSet();
+    final list = _store.events.where((e) => idSet.contains(e.id)).toList();
+    return Result.ok(list);
+  }
 }

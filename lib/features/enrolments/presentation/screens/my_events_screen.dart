@@ -3,6 +3,8 @@ import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
+import 'package:campus_event_hub/features/reviews/presentation/controllers/reviews_controllers.dart';
+import 'package:campus_event_hub/features/reviews/presentation/widgets/review_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +24,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(upcomingEventsProvider);
+    final eventsAsync = ref.watch(myEnrolledEventsProvider);
     final enrolmentsAsync = ref.watch(enrolmentsProvider);
 
     return Scaffold(
@@ -41,7 +43,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
         error: (e, _) => ErrorState(
           message: 'Could not load your events.',
           onRetry: () {
-            ref.invalidate(upcomingEventsProvider);
+            ref.invalidate(myEnrolledEventsProvider);
             ref.read(enrolmentsProvider.notifier).refresh();
           },
         ),
@@ -52,7 +54,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
             error: (e, _) => ErrorState(
               message: 'Could not load your registrations.',
               onRetry: () {
-                ref.invalidate(upcomingEventsProvider);
+                ref.invalidate(myEnrolledEventsProvider);
                 ref.read(enrolmentsProvider.notifier).refresh();
               },
             ),
@@ -63,12 +65,16 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
               final now = DateTime.now();
 
               final upcomingEvents = myEvents
-                  .where((event) => event.startAt.isAfter(now))
+                  .where((event) =>
+                      event.startAt.isAfter(now) &&
+                      event.status != EventStatus.completed)
                   .toList()
                 ..sort((a, b) => a.startAt.compareTo(b.startAt));
 
               final pastEvents = myEvents
-                  .where((event) => event.startAt.isBefore(now))
+                  .where((event) =>
+                      event.startAt.isBefore(now) ||
+                      event.status == EventStatus.completed)
                   .toList()
                 ..sort((a, b) => b.startAt.compareTo(a.startAt));
 
@@ -78,7 +84,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
               return RefreshIndicator(
                 color: AppColors.primary,
                 onRefresh: () async {
-                  ref.invalidate(upcomingEventsProvider);
+                  ref.invalidate(myEnrolledEventsProvider);
                   await ref.read(enrolmentsProvider.notifier).refresh();
                 },
                 child: ListView(
@@ -362,6 +368,54 @@ class _MyEventCard extends StatelessWidget {
                       icon: const Icon(Icons.qr_code_rounded, size: 16),
                       iconPosition: AppButtonIconPosition.left,
                       onPressed: onQrPass,
+                    ),
+                  ] else if (isAttended) ...[
+                    const SizedBox(width: AppSpacing.md),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final reviewAsync =
+                            ref.watch(myReviewForEventProvider(event.id));
+                        final review = reviewAsync.valueOrNull;
+                        if (review != null) {
+                          return OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFF59E0B),
+                              side: const BorderSide(
+                                  color: Color(0xFFF59E0B)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.sm,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs,
+                              ),
+                            ),
+                            icon: const Icon(Icons.star_rounded, size: 16),
+                            label: Text(
+                              '${review.rating} ★ (Edit)',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            onPressed: () => ReviewSheet.show(
+                              context,
+                              eventId: event.id,
+                              existingReview: review,
+                            ),
+                          );
+                        }
+                        return AppSecondaryButton(
+                          label: 'Rate Event',
+                          icon: const Icon(Icons.star_outline_rounded,
+                              size: 16, color: Color(0xFFF59E0B)),
+                          iconPosition: AppButtonIconPosition.left,
+                          onPressed: () => ReviewSheet.show(
+                            context,
+                            eventId: event.id,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ],

@@ -7,6 +7,7 @@ import 'package:campus_event_hub/features/events/domain/event_repository.dart';
 import 'package:campus_event_hub/features/notifications/domain/notification_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:campus_event_hub/features/clubs/domain/club_repository.dart';
+import 'package:campus_event_hub/features/reviews/domain/review.dart';
 
 /// Single shared in-memory demo dataset for the whole app session.
 ///
@@ -33,6 +34,9 @@ class DemoDataStore {
 
   /// eventId -> registrations for that event (organizer/admin view).
   late Map<String, List<RegistrationRow>> registrationsByEvent;
+
+  /// eventId -> reviews for that event.
+  late Map<String, List<ReviewModel>> reviewsByEvent;
 
   /// eventId -> qrToken -> userId, used by the attendance scanner to
   /// resolve a scanned token back to a registration row.
@@ -352,6 +356,18 @@ class DemoDataStore {
         contactName: 'Rahul Verma',
         contactEmail: 'demo.organizer@college.edu.example',
         status: EventStatus.completed,
+        guests: const [
+          EventGuest(
+            name: 'Dr. Aris Thorne',
+            designation: 'VP of Engineering',
+            organization: 'RoboDynamics Inc.',
+          ),
+          EventGuest(
+            name: 'Priya Sundaram',
+            designation: 'Lead Architect',
+            organization: 'CloudScale Labs',
+          ),
+        ],
       ),
     ];
 
@@ -426,13 +442,81 @@ class DemoDataStore {
           attendanceStatus: AttendanceStatus.attended,
           attendedAt: DateTime(2025, 11, 15, 9, 30),
         ),
+        RegistrationRow(
+          userId: 's2',
+          studentName: 'Karan Mehta',
+          studentId: 'STU2026042',
+          rollNo: '70012026042',
+          programme: 'B.Tech',
+          branch: 'Information Technology (IT)',
+          academicYear: 'Second Year',
+          collegeEmail: 'karan.mehta@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.attended,
+          attendedAt: DateTime(2025, 11, 15, 9, 45),
+        ),
+        const RegistrationRow(
+          userId: 's3',
+          studentName: 'Neha Joshi',
+          studentId: 'STU2026043',
+          rollNo: '70012026043',
+          programme: 'B.Pharm',
+          branch: 'N/A',
+          academicYear: 'First Year',
+          collegeEmail: 'neha.joshi@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.attended,
+          attendedAt: null,
+        ),
+      ],
+    };
+
+    reviewsByEvent = {
+      'evt-past-hackathon': [
+        ReviewModel(
+          id: 'rev-hackathon-1',
+          eventId: 'evt-past-hackathon',
+          userId: 'demo-student-1',
+          rating: 5,
+          comment:
+              'Incredible hackathon! The mentorship and problem tracks were top-notch.',
+          createdAt: DateTime(2025, 11, 16, 14, 0),
+          updatedAt: DateTime(2025, 11, 16, 14, 0),
+          studentName: 'Aisha Sharma',
+        ),
+        ReviewModel(
+          id: 'rev-hackathon-2',
+          eventId: 'evt-past-hackathon',
+          userId: 's2',
+          rating: 4,
+          comment:
+              'Great organization and food. Wifi had brief hiccups at 2 AM but overall fantastic.',
+          createdAt: DateTime(2025, 11, 16, 15, 30),
+          updatedAt: DateTime(2025, 11, 16, 15, 30),
+          studentName: 'Karan Mehta',
+        ),
+        ReviewModel(
+          id: 'rev-hackathon-3',
+          eventId: 'evt-past-hackathon',
+          userId: 's3',
+          rating: 5,
+          comment:
+              'Learned so much in 24 hours. Looking forward to the next edition!',
+          createdAt: DateTime(2025, 11, 16, 16, 10),
+          updatedAt: DateTime(2025, 11, 16, 16, 10),
+          studentName: 'Neha Joshi',
+        ),
       ],
     };
 
     qrTokensByEvent = {
       'evt-1': {'DEMO-QR-TOKEN-EVT1-AISHA': 'demo-student-1'},
       'evt-closed-deadline': {'DEMO-QR-TOKEN-CLOSED-AISHA': 'demo-student-1'},
-      'evt-past-hackathon': {'DEMO-QR-TOKEN-HACKATHON-AISHA': 'demo-student-1'},
+      'evt-past-hackathon': {
+        'DEMO-QR-TOKEN-HACKATHON-AISHA': 'demo-student-1',
+        'DEMO-QR-TOKEN-HACKATHON-KARAN': 's2',
+        'DEMO-QR-TOKEN-HACKATHON-NEHA': 's3',
+      },
     };
 
     favouritesByUser['demo-student-1'] = {'evt-2'};
@@ -477,6 +561,24 @@ class DemoDataStore {
         eventId: 'evt-past-hackathon',
         eventTitle: 'Winter Hackathon 2025',
         certificateCode: 'CP2025WH0421',
+        issuedAt: now.subtract(const Duration(days: 20)),
+      ),
+    ];
+    certificatesByUser['s2'] = [
+      CertificateModel(
+        id: 'cert-demo-2',
+        eventId: 'evt-past-hackathon',
+        eventTitle: 'Winter Hackathon 2025',
+        certificateCode: 'CP2025WH0422',
+        issuedAt: now.subtract(const Duration(days: 20)),
+      ),
+    ];
+    certificatesByUser['s3'] = [
+      CertificateModel(
+        id: 'cert-demo-3',
+        eventId: 'evt-past-hackathon',
+        eventTitle: 'Winter Hackathon 2025',
+        certificateCode: 'CP2025WH0423',
         issuedAt: now.subtract(const Duration(days: 20)),
       ),
     ];

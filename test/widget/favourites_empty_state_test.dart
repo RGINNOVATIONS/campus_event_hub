@@ -35,6 +35,9 @@ class _NoFavouritesRepo implements EventRepository {
   @override
   Future<Result<List<EventModel>>> openPublishedEvents() async =>
       Result.ok([]);
+  @override
+  Future<Result<List<EventModel>>> myEnrolledEvents(List<String> eventIds) async =>
+      Result.ok([]);
 }
 
 void main() {
