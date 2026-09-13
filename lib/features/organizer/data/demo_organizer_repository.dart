@@ -87,6 +87,7 @@ class DemoOrganizerRepository implements OrganizerRepository {
       rejectionReason: existing?.rejectionReason,
       postponementReason: existing?.postponementReason,
       createdByUserId: existing?.createdByUserId ?? _uid,
+      guests: input.guests,
     );
     _store.upsertEvent(event);
     return Result.ok(event);

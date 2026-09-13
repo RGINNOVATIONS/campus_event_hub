@@ -214,6 +214,12 @@ class _EventContent extends StatelessWidget {
         const SectionHeader(title: 'About this event'),
         const SizedBox(height: AppSpacing.sm),
         Text(event.fullDescription, style: AppTextStyles.bodySecondary),
+        if (event.guests.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xl),
+          const SectionHeader(title: 'Guests & Speakers'),
+          const SizedBox(height: AppSpacing.md),
+          ...event.guests.map((guest) => _GuestCard(guest: guest)),
+        ],
         _Section(title: 'Eligibility', body: event.eligibility),
         _Section(title: 'Rules', body: event.rules),
         if (event.feeText != null && event.feeText!.trim().isNotEmpty)
@@ -546,3 +552,89 @@ class _Section extends StatelessWidget {
     );
   }
 }
+
+class _GuestCard extends StatelessWidget {
+  final EventGuest guest;
+
+  const _GuestCard({required this.guest});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: AppRadius.sm,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  guest.name,
+                  style: AppTextStyles.label.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                if (guest.designation.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    guest.designation,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (guest.organization.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.business_rounded,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          guest.organization,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

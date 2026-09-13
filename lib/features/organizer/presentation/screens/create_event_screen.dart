@@ -49,6 +49,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   String? _error;
   Uint8List? _posterPreviewBytes;
   String? _uploadedPosterPath;
+  final List<_GuestEntry> _guestEntries = [];
 
   @override
   void initState() {
@@ -58,6 +59,46 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _deadline = widget.existing?.registrationDeadline;
     _categoryId = widget.existing?.categoryId;
     _uploadedPosterPath = widget.existing?.posterPath;
+    if (widget.existing != null) {
+      for (final g in widget.existing!.guests) {
+        _guestEntries.add(_GuestEntry(
+          name: g.name,
+          designation: g.designation,
+          org: g.organization,
+        ));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _shortDesc.dispose();
+    _fullDesc.dispose();
+    _venue.dispose();
+    _eligibility.dispose();
+    _rules.dispose();
+    _feeText.dispose();
+    _contactName.dispose();
+    _contactEmail.dispose();
+    _contactPhone.dispose();
+    for (final g in _guestEntries) {
+      g.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addGuest() {
+    setState(() {
+      _guestEntries.add(_GuestEntry());
+    });
+  }
+
+  void _removeGuest(int index) {
+    setState(() {
+      final entry = _guestEntries.removeAt(index);
+      entry.dispose();
+    });
   }
 
   @override
@@ -272,7 +313,157 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                 const SizedBox(height: AppSpacing.lg),
 
-                // 5. Organizer Contact Card
+                // 5. Guests & Speakers Card (Optional)
+                _FormCard(
+                  title: 'Guests & Speakers (Optional)',
+                  subtitle:
+                      'Add keynote speakers, chief guests, or dignitaries',
+                  children: [
+                    if (_guestEntries.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: AppRadius.md,
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.people_outline_rounded,
+                                color: AppColors.textMuted, size: 20),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                'No guests or speakers added yet.',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    for (var i = 0; i < _guestEntries.length; i++) ...[
+                      Container(
+                        key: ValueKey(_guestEntries[i]),
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: AppRadius.md,
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.primaryLight,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        '${i + 1}',
+                                        style: const TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Text(
+                                      'Guest #${i + 1}',
+                                      style: AppTextStyles.label.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: AppColors.danger, size: 20),
+                                  tooltip: 'Remove Guest',
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _removeGuest(i),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextFormField(
+                              controller: _guestEntries[i].nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Guest / Speaker Name *',
+                                hintText: 'e.g. Dr. Jane Doe',
+                                prefixIcon:
+                                    Icon(Icons.person_outline, size: 18),
+                              ),
+                              validator: (v) {
+                                final entry = _guestEntries[i];
+                                final hasOtherField = entry
+                                        .designationController.text
+                                        .trim()
+                                        .isNotEmpty ||
+                                    entry.orgController.text
+                                        .trim()
+                                        .isNotEmpty;
+                                if (hasOtherField &&
+                                    (v == null || v.trim().isEmpty)) {
+                                  return 'Please enter guest name';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextFormField(
+                              controller:
+                                  _guestEntries[i].designationController,
+                              decoration: const InputDecoration(
+                                labelText: 'Designation / Role',
+                                hintText:
+                                    'e.g. Keynote Speaker / Chief Guest / AI Researcher',
+                                prefixIcon: Icon(Icons.badge_outlined, size: 18),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextFormField(
+                              controller: _guestEntries[i].orgController,
+                              decoration: const InputDecoration(
+                                labelText: 'Organization / Affiliation',
+                                hintText: 'e.g. Google DeepMind / MIT',
+                                prefixIcon:
+                                    Icon(Icons.business_outlined, size: 18),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    const SizedBox(height: AppSpacing.xs),
+                    OutlinedButton.icon(
+                      onPressed: _addGuest,
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Add Guest / Speaker'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.sm),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.lg),
+
+                // 6. Organizer Contact Card
                 _FormCard(
                   title: 'Organizer Contact',
                   subtitle: 'Contact details displayed for inquiries',
@@ -448,6 +639,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return;
     }
 
+    final validGuests = _guestEntries
+        .map((e) => e.toGuest())
+        .where((g) => g.name.isNotEmpty)
+        .toList();
+
     setState(() => _saving = true);
     final repo = ref.read(organizerRepositoryProvider);
     final result = await repo.saveDraft(DraftEventInput(
@@ -468,6 +664,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       contactEmail: _contactEmail.text.trim(),
       contactPhone:
           _contactPhone.text.trim().isEmpty ? null : _contactPhone.text.trim(),
+      guests: validGuests,
     ));
 
     await result.when(
@@ -744,3 +941,27 @@ class _PosterPicker extends StatelessWidget {
     );
   }
 }
+
+class _GuestEntry {
+  final TextEditingController nameController;
+  final TextEditingController designationController;
+  final TextEditingController orgController;
+
+  _GuestEntry({String name = '', String designation = '', String org = ''})
+      : nameController = TextEditingController(text: name),
+        designationController = TextEditingController(text: designation),
+        orgController = TextEditingController(text: org);
+
+  void dispose() {
+    nameController.dispose();
+    designationController.dispose();
+    orgController.dispose();
+  }
+
+  EventGuest toGuest() => EventGuest(
+        name: nameController.text.trim(),
+        designation: designationController.text.trim(),
+        organization: orgController.text.trim(),
+      );
+}
+

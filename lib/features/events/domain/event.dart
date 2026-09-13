@@ -24,6 +24,7 @@ class EventModel {
   final String? rejectionReason;
   final String? postponementReason;
   final String? createdByUserId;
+  final List<EventGuest> guests;
 
   const EventModel({
     required this.id,
@@ -49,6 +50,7 @@ class EventModel {
     this.rejectionReason,
     this.postponementReason,
     this.createdByUserId,
+    this.guests = const [],
   });
 
   EventModel copyWith({
@@ -75,6 +77,7 @@ class EventModel {
     String? rejectionReason,
     String? postponementReason,
     String? createdByUserId,
+    List<EventGuest>? guests,
   }) {
     return EventModel(
       id: id ?? this.id,
@@ -100,8 +103,57 @@ class EventModel {
       rejectionReason: rejectionReason ?? this.rejectionReason,
       postponementReason: postponementReason ?? this.postponementReason,
       createdByUserId: createdByUserId ?? this.createdByUserId,
+      guests: guests ?? this.guests,
     );
   }
+}
+
+class EventGuest {
+  final String name;
+  final String designation;
+  final String organization;
+
+  const EventGuest({
+    required this.name,
+    required this.designation,
+    required this.organization,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name.trim(),
+        'designation': designation.trim(),
+        'organization': organization.trim(),
+      };
+
+  factory EventGuest.fromJson(Map<String, dynamic> json) => EventGuest(
+        name: (json['name'] as String?)?.trim() ?? '',
+        designation: (json['designation'] as String?)?.trim() ?? '',
+        organization: (json['organization'] as String?)?.trim() ?? '',
+      );
+
+  EventGuest copyWith({
+    String? name,
+    String? designation,
+    String? organization,
+  }) {
+    return EventGuest(
+      name: name ?? this.name,
+      designation: designation ?? this.designation,
+      organization: organization ?? this.organization,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EventGuest &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          designation == other.designation &&
+          organization == other.organization;
+
+  @override
+  int get hashCode => Object.hash(name, designation, organization);
 }
 
 /// What the persistent Enroll button on the Event Details screen should

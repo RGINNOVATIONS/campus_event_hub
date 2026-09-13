@@ -15,8 +15,8 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   static const _eventSelect =
       'id, club_id, category_id, title, short_description, full_description, poster_path, '
       'venue, start_at, end_at, registration_deadline, eligibility, rules, fee_text, '
-      'contact_name, contact_email, contact_phone, status, rejection_reason, '
-      'clubs!club_id(name), categories!category_id(name)';
+      'contact_name, contact_email, contact_phone, status, rejection_reason, postponement_reason, '
+      'guests, clubs!club_id(name), categories!category_id(name)';
 
   static const _imageMimeTypes = {
     'jpg': 'image/jpeg',
@@ -49,6 +49,10 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
         status: EventStatusX.fromDb(row['status'] as String),
         rejectionReason: row['rejection_reason'] as String?,
         postponementReason: row['postponement_reason'] as String?,
+        guests: (row['guests'] as List<dynamic>?)
+                ?.map((g) => EventGuest.fromJson(g as Map<String, dynamic>))
+                .toList() ??
+            const [],
       );
 
   Future<List<EventModel>> _resolvePosters(List<EventModel> events) async {
@@ -200,6 +204,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
           'contact_phone': input.contactPhone,
           'created_by': uid,
           'status': 'draft',
+          'guests': input.guests.map((g) => g.toJson()).toList(),
         };
         final rows = await _client
             .from('events')
@@ -231,6 +236,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'p_contact_name': input.contactName,
             'p_contact_email': input.contactEmail,
             'p_contact_phone': input.contactPhone,
+            'p_guests': input.guests.map((g) => g.toJson()).toList(),
           });
           final resolved = await _resolvePosters([_mapRow(row as Map<String, dynamic>)]);
           return Result.ok(resolved.first);
@@ -253,6 +259,7 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
             'contact_name': input.contactName,
             'contact_email': input.contactEmail,
             'contact_phone': input.contactPhone,
+            'guests': input.guests.map((g) => g.toJson()).toList(),
           };
           final rows = await _client
               .from('events')

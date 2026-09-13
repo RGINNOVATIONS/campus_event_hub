@@ -65,6 +65,7 @@ class DraftEventInput {
   final String contactName;
   final String contactEmail;
   final String? contactPhone;
+  final List<EventGuest> guests;
 
   const DraftEventInput({
     this.id,
@@ -83,6 +84,7 @@ class DraftEventInput {
     required this.contactName,
     required this.contactEmail,
     this.contactPhone,
+    this.guests = const [],
   });
 }
 

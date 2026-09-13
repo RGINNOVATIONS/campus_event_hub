@@ -95,6 +95,7 @@ class DemoDataStore {
       status: e.status,
       rejectionReason: e.rejectionReason,
       createdByUserId: e.createdByUserId,
+      guests: e.guests,
     )).toList();
   }
 
@@ -185,6 +186,18 @@ class DemoDataStore {
         contactName: 'Rahul Verma',
         contactEmail: 'demo.organizer@college.edu.example',
         status: EventStatus.published,
+        guests: const [
+          EventGuest(
+            name: 'Dr. Aris Thorne',
+            designation: 'Lead Robotics Researcher',
+            organization: 'Advanced Robotics Lab',
+          ),
+          EventGuest(
+            name: 'Elena Rostova',
+            designation: 'Autonomous Systems Engineer',
+            organization: 'MechTech Dynamics',
+          ),
+        ],
       ),
       EventModel(
         id: 'evt-2',

@@ -12,8 +12,8 @@ class SupabaseEventRepository implements EventRepository {
   static const _eventSelect =
       'id, club_id, category_id, title, short_description, full_description, poster_path, '
       'venue, start_at, end_at, registration_deadline, eligibility, rules, fee_text, '
-      'contact_name, contact_email, contact_phone, status, rejection_reason, '
-      'clubs!club_id(name), categories!category_id(name)';
+      'contact_name, contact_email, contact_phone, status, rejection_reason, postponement_reason, '
+      'guests, clubs!club_id(name), categories!category_id(name)';
 
   EventModel _mapRow(Map<String, dynamic> row) => EventModel(
         id: row['id'] as String,
@@ -39,6 +39,10 @@ class SupabaseEventRepository implements EventRepository {
         status: EventStatusX.fromDb(row['status'] as String),
         rejectionReason: row['rejection_reason'] as String?,
         postponementReason: row['postponement_reason'] as String?,
+        guests: (row['guests'] as List<dynamic>?)
+                ?.map((g) => EventGuest.fromJson(g as Map<String, dynamic>))
+                .toList() ??
+            const [],
       );
 
   Future<List<EventModel>> _resolvePosters(List<EventModel> events) async {
