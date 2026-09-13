@@ -34,4 +34,5 @@ web/firebase-config.js
 qa_credentials.json
 .qa_defines.json
 *.sql
+!supabase/migrations/*.sql
 node_modules/
