@@ -468,6 +468,19 @@ class DemoDataStore {
           attendanceStatus: AttendanceStatus.attended,
           attendedAt: null,
         ),
+        const RegistrationRow(
+          userId: 's4',
+          studentName: 'Rohan Verma',
+          studentId: 'STU2026044',
+          rollNo: '70012026044',
+          programme: 'B.Tech',
+          branch: 'Data Science',
+          academicYear: 'Third Year',
+          collegeEmail: 'rohan.verma@college.edu.example',
+          registrationStatus: 'registered',
+          attendanceStatus: AttendanceStatus.registered,
+          attendedAt: null,
+        ),
       ],
     };
 

@@ -93,6 +93,10 @@ class _MockOrganizerRepo implements OrganizerRepository {
   Future<Result<String>> uploadPoster(
           {required List<int> bytes, required String fileExtension}) async =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<EventReportData>> eventReportData(String eventId) async =>
+      throw UnimplementedError();
 }
 
 void main() {

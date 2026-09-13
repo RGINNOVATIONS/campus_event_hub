@@ -11,6 +11,7 @@ import 'package:campus_event_hub/features/organizer/presentation/screens/create_
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_dashboard_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/organizer_events_screen.dart';
 import 'package:campus_event_hub/features/organizer/presentation/widgets/postpone_event_dialog.dart';
+import 'package:campus_event_hub/features/reports/presentation/widgets/event_report_preview_sheet.dart';
 import 'package:campus_event_hub/features/reviews/presentation/controllers/reviews_controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +37,7 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
   String? _registrationsError;
   bool _busy = false;
   bool _isExporting = false;
+  bool _isGeneratingReport = false;
 
   @override
   void initState() {
@@ -321,6 +323,23 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                         iconPosition: AppButtonIconPosition.left,
                         onPressed: (_busy || _isExporting) ? null : _exportCsv,
                       ),
+                      if (event.status == EventStatus.completed)
+                        AppSecondaryButton(
+                          label: _isGeneratingReport ? 'Loading...' : 'Event Report',
+                          icon: _isGeneratingReport
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : const Icon(Icons.assessment_outlined,
+                                  size: 16, color: AppColors.primary),
+                          iconPosition: AppButtonIconPosition.left,
+                          onPressed: (_busy || _isGeneratingReport) ? null : _generateReport,
+                        ),
                       if (!widget.isReadOnly)
                         AppSecondaryButton(
                           label: 'Delete Event',
@@ -607,6 +626,50 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
                       const Row(
                         children: [
                           Icon(
+                            Icons.assessment_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Text(
+                            "Dean's Event Report",
+                            style: AppTextStyles.title,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      const Text(
+                        'View and inspect the aggregated event overview, attendance metrics, demographic breakdowns, feedback stats, and organizer details.',
+                        style: AppTextStyles.bodySecondary,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppPrimaryButton(
+                        label: 'Generate Event Report',
+                        icon: const Icon(Icons.assessment_outlined, size: 18),
+                        iconPosition: AppButtonIconPosition.left,
+                        isLoading: _isGeneratingReport,
+                        fullWidth: true,
+                        onPressed: (_busy || _isGeneratingReport) ? null : _generateReport,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Material(
+                color: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: AppColors.border),
+                  borderRadius: AppRadius.lg,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
                             Icons.workspace_premium_rounded,
                             color: AppColors.primary,
                             size: 24,
@@ -847,6 +910,40 @@ class _EventManagementScreenState extends ConsumerState<EventManagementScreen> {
     } finally {
       if (mounted) {
         setState(() => _isExporting = false);
+      }
+    }
+  }
+
+  Future<void> _generateReport() async {
+    setState(() => _isGeneratingReport = true);
+    try {
+      final res = widget.isReadOnly
+          ? await ref.read(adminRepositoryProvider).eventReportData(_currentEvent.id)
+          : await ref.read(organizerRepositoryProvider).eventReportData(_currentEvent.id);
+
+      if (!mounted) return;
+
+      res.when(
+        ok: (report) => EventReportPreviewSheet.show(context, report),
+        err: (f) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(f.message),
+            backgroundColor: AppColors.danger,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate report: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingReport = false);
       }
     }
   }

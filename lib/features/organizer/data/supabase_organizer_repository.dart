@@ -6,6 +6,8 @@ import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reviews/data/supabase_review_repository.dart';
+import 'package:campus_event_hub/features/reviews/domain/review.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseOrganizerRepository implements OrganizerRepository {
@@ -528,5 +530,51 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
   Future<String?> _callerClubId() async {
     final ids = await _callerClubIds();
     return ids.isNotEmpty ? ids.first : null;
+  }
+
+  @override
+  Future<Result<EventReportData>> eventReportData(String eventId) async {
+    try {
+      final eventRow = await _client
+          .from('events')
+          .select(_eventSelect)
+          .eq('id', eventId)
+          .maybeSingle();
+      if (eventRow == null) {
+        return Result.err(const UnknownFailure('Event not found.'));
+      }
+      final event = _mapRow(eventRow);
+      if (event.status != EventStatus.completed) {
+        return Result.err(const ValidationFailure(
+            'Reports are only available for completed events.'));
+      }
+
+      final callerClubIds = await _callerClubIds();
+      if (!callerClubIds.contains(event.clubId)) {
+        return Result.err(const AuthorizationFailure(
+            'You are not authorized to view reports for this event.'));
+      }
+
+      final regResult = await registrationsFor(eventId);
+      if (regResult.isErr) {
+        return Result.err(regResult.failureOrNull!);
+      }
+      final registrations = regResult.valueOrNull ?? [];
+
+      final feedbackRes = await SupabaseReviewRepository(_client)
+          .eventFeedbackSummary(eventId);
+      final feedback =
+          feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
+
+      final report = EventReportAggregator.aggregate(
+        event: event,
+        registrations: registrations,
+        feedback: feedback,
+      );
+      return Result.ok(report);
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Could not load event report.'));
+    }
   }
 }

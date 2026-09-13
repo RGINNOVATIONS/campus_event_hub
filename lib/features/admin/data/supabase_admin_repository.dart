@@ -3,6 +3,9 @@ import 'package:campus_event_hub/core/errors/app_failure.dart';
 import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
+import 'package:campus_event_hub/features/reviews/data/supabase_review_repository.dart';
+import 'package:campus_event_hub/features/reviews/domain/review.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseAdminRepository implements AdminRepository {
@@ -288,6 +291,46 @@ class SupabaseAdminRepository implements AdminRepository {
     } catch (e) {
       return Result.err(mapExceptionToFailure(e,
           fallbackMessage: 'Could not load registrations.'));
+    }
+  }
+
+  @override
+  Future<Result<EventReportData>> eventReportData(String eventId) async {
+    try {
+      final eventRow = await _client
+          .from('events')
+          .select(_eventSelect)
+          .eq('id', eventId)
+          .maybeSingle();
+      if (eventRow == null) {
+        return Result.err(const UnknownFailure('Event not found.'));
+      }
+      final event = _mapRow(eventRow);
+      if (event.status != EventStatus.completed) {
+        return Result.err(const ValidationFailure(
+            'Reports are only available for completed events.'));
+      }
+
+      final regResult = await registrationsFor(eventId);
+      if (regResult.isErr) {
+        return Result.err(regResult.failureOrNull!);
+      }
+      final registrations = regResult.valueOrNull ?? [];
+
+      final feedbackRes = await SupabaseReviewRepository(_client)
+          .eventFeedbackSummary(eventId);
+      final feedback =
+          feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
+
+      final report = EventReportAggregator.aggregate(
+        event: event,
+        registrations: registrations,
+        feedback: feedback,
+      );
+      return Result.ok(report);
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Could not load event report.'));
     }
   }
 }

@@ -2,6 +2,9 @@ import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
+
+export 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
 
 class OrganizerDashboardCounts {
   final int totalEvents;
@@ -117,4 +120,9 @@ abstract class OrganizerRepository {
     required List<int> bytes,
     required String fileExtension,
   });
+
+  /// Gathers all event report data (overview, participation summary,
+  /// demographic breakdowns of attended students, guests, feedback, organizer)
+  /// for a completed event.
+  Future<Result<EventReportData>> eventReportData(String eventId);
 }

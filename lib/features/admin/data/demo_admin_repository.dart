@@ -4,6 +4,9 @@ import 'package:campus_event_hub/core/errors/app_failure.dart';
 import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
+import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
+import 'package:campus_event_hub/features/reviews/domain/review.dart';
 
 class DemoAdminRepository implements AdminRepository {
   final DemoDataStore _store = DemoDataStore.instance;
@@ -84,6 +87,30 @@ class DemoAdminRepository implements AdminRepository {
   Future<Result<List<RegistrationRow>>> registrationsFor(String eventId) async {
     final list = _store.registrationsByEvent[eventId] ?? [];
     return Result.ok([...list]);
+  }
+
+  @override
+  Future<Result<EventReportData>> eventReportData(String eventId) async {
+    final event = _store.eventById(eventId);
+    if (event == null) {
+      return Result.err(const UnknownFailure('Event not found.'));
+    }
+    if (event.status != EventStatus.completed) {
+      return Result.err(const ValidationFailure(
+          'Reports are only available for completed events.'));
+    }
+    final regs = _store.registrationsByEvent[eventId] ?? [];
+    final feedbackRes =
+        await DemoReviewRepository().eventFeedbackSummary(eventId);
+    final feedback =
+        feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
+
+    final report = EventReportAggregator.aggregate(
+      event: event,
+      registrations: regs,
+      feedback: feedback,
+    );
+    return Result.ok(report);
   }
 
   void _replaceClubStatus(String clubId, ClubStatus status) {

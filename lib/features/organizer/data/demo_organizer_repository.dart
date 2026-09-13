@@ -8,6 +8,8 @@ import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
+import 'package:campus_event_hub/features/reviews/domain/review.dart';
 
 /// Demo mode has one organizer account tied to `club-robotics`.
 const _demoOrganizerClubId = 'club-robotics';
@@ -245,5 +247,33 @@ class DemoOrganizerRepository implements OrganizerRepository {
         'demo-poster-${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
     _store.posterBytesByPath[path] = Uint8List.fromList(bytes);
     return Result.ok(path);
+  }
+
+  @override
+  Future<Result<EventReportData>> eventReportData(String eventId) async {
+    final event = _store.eventById(eventId);
+    if (event == null) {
+      return Result.err(const UnknownFailure('Event not found.'));
+    }
+    if (event.status != EventStatus.completed) {
+      return Result.err(const ValidationFailure(
+          'Reports are only available for completed events.'));
+    }
+    if (event.clubId != _demoOrganizerClubId) {
+      return Result.err(const AuthorizationFailure(
+          'You are not authorized to view reports for this event.'));
+    }
+    final regs = _store.registrationsByEvent[eventId] ?? [];
+    final feedbackRes =
+        await DemoReviewRepository().eventFeedbackSummary(eventId);
+    final feedback =
+        feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
+
+    final report = EventReportAggregator.aggregate(
+      event: event,
+      registrations: regs,
+      feedback: feedback,
+    );
+    return Result.ok(report);
   }
 }

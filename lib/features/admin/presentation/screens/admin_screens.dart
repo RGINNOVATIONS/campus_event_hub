@@ -7,6 +7,7 @@ import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/event_management_screen.dart';
+import 'package:campus_event_hub/features/reports/presentation/widgets/event_report_preview_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -743,6 +744,15 @@ class AdminCalendarScreen extends ConsumerWidget {
                           onPressed: () => _exportCsv(context, ref, e),
                         ),
 
+                        // Generate Report action (for completed events)
+                        if (e.status == EventStatus.completed)
+                          IconButton(
+                            icon: const Icon(Icons.assessment_outlined,
+                                color: AppColors.primary),
+                            tooltip: 'Generate Event Report',
+                            onPressed: () => _generateReport(context, ref, e),
+                          ),
+
                         // Cancel action
                         IconButton(
                           icon: const Icon(Icons.block, color: AppColors.danger),
@@ -819,6 +829,34 @@ class AdminCalendarScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _generateReport(
+      BuildContext context, WidgetRef ref, EventModel event) async {
+    try {
+      final res =
+          await ref.read(adminRepositoryProvider).eventReportData(event.id);
+      if (!context.mounted) return;
+
+      res.when(
+        ok: (report) => EventReportPreviewSheet.show(context, report),
+        err: (f) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report failed: ${f.message}'),
+            backgroundColor: AppColors.danger,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report failed: $e'),
             backgroundColor: AppColors.danger,
           ),
         );

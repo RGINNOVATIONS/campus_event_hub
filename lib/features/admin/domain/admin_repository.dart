@@ -6,7 +6,7 @@ import 'package:campus_event_hub/features/organizer/domain/organizer_repository.
 export 'package:campus_event_hub/features/clubs/domain/club_repository.dart'
     show ClubModel;
 export 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart'
-    show RegistrationRow;
+    show RegistrationRow, EventReportData;
 
 class AdminDashboardCounts {
   final int pendingEvents;
@@ -32,4 +32,5 @@ abstract class AdminRepository {
   Future<Result<void>> verifyClub(String clubId);
   Future<Result<void>> rejectClub(String clubId);
   Future<Result<List<RegistrationRow>>> registrationsFor(String eventId);
+  Future<Result<EventReportData>> eventReportData(String eventId);
 }
