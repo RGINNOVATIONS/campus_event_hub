@@ -4,6 +4,7 @@ import 'package:campus_event_hub/core/errors/app_failure.dart';
 import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/admin/domain/admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
+import 'package:campus_event_hub/features/reports/data/report_ai_service.dart';
 import 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
 import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
@@ -105,10 +106,14 @@ class DemoAdminRepository implements AdminRepository {
     final feedback =
         feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
 
+    final contentRes = await DemoReportAiService().getReportContent(eventId);
+    final content = contentRes.valueOrNull;
+
     final report = EventReportAggregator.aggregate(
       event: event,
       registrations: regs,
       feedback: feedback,
+      content: content,
     );
     return Result.ok(report);
   }

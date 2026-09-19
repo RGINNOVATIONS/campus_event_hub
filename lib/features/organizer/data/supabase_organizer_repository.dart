@@ -6,6 +6,7 @@ import 'package:campus_event_hub/core/result/result.dart';
 import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reports/data/report_ai_service.dart';
 import 'package:campus_event_hub/features/reviews/data/supabase_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -566,10 +567,15 @@ class SupabaseOrganizerRepository implements OrganizerRepository {
       final feedback =
           feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
 
+      final contentRes =
+          await SupabaseReportAiService(_client).getReportContent(eventId);
+      final content = contentRes.valueOrNull;
+
       final report = EventReportAggregator.aggregate(
         event: event,
         registrations: registrations,
         feedback: feedback,
+        content: content,
       );
       return Result.ok(report);
     } catch (e) {

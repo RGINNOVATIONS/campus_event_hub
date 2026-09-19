@@ -1,6 +1,7 @@
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reports/domain/event_report_ai_content.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
 
 class DemographicItem {
@@ -75,7 +76,10 @@ class EventReportData {
   // 6. Organizer Details
   final ReportOrganizerDetails organizer;
 
-  // 7. Metadata
+  // 7. Persisted AI & Report Content (Objectives, Outcomes, Narrative)
+  final EventReportContent? content;
+
+  // 8. Metadata
   final DateTime generatedAt;
 
   const EventReportData({
@@ -97,7 +101,52 @@ class EventReportData {
     required this.feedback,
     required this.organizer,
     required this.generatedAt,
+    this.content,
   });
+
+  EventReportData copyWith({
+    String? eventId,
+    String? title,
+    String? categoryName,
+    String? clubName,
+    String? venue,
+    DateTime? startAt,
+    DateTime? endAt,
+    String? fullDescription,
+    int? registrationsCount,
+    int? attendanceCount,
+    double? attendancePercentage,
+    List<DemographicItem>? programmeBreakdown,
+    List<DemographicItem>? branchBreakdown,
+    List<DemographicItem>? academicYearBreakdown,
+    List<EventGuest>? guests,
+    EventFeedbackSummary? feedback,
+    ReportOrganizerDetails? organizer,
+    DateTime? generatedAt,
+    EventReportContent? content,
+  }) {
+    return EventReportData(
+      eventId: eventId ?? this.eventId,
+      title: title ?? this.title,
+      categoryName: categoryName ?? this.categoryName,
+      clubName: clubName ?? this.clubName,
+      venue: venue ?? this.venue,
+      startAt: startAt ?? this.startAt,
+      endAt: endAt ?? this.endAt,
+      fullDescription: fullDescription ?? this.fullDescription,
+      registrationsCount: registrationsCount ?? this.registrationsCount,
+      attendanceCount: attendanceCount ?? this.attendanceCount,
+      attendancePercentage: attendancePercentage ?? this.attendancePercentage,
+      programmeBreakdown: programmeBreakdown ?? this.programmeBreakdown,
+      branchBreakdown: branchBreakdown ?? this.branchBreakdown,
+      academicYearBreakdown: academicYearBreakdown ?? this.academicYearBreakdown,
+      guests: guests ?? this.guests,
+      feedback: feedback ?? this.feedback,
+      organizer: organizer ?? this.organizer,
+      generatedAt: generatedAt ?? this.generatedAt,
+      content: content ?? this.content,
+    );
+  }
 }
 
 class EventReportAggregator {
@@ -107,6 +156,7 @@ class EventReportAggregator {
     required EventModel event,
     required List<RegistrationRow> registrations,
     required EventFeedbackSummary feedback,
+    EventReportContent? content,
     DateTime? generatedAt,
   }) {
     final regCount = registrations.length;
@@ -120,17 +170,17 @@ class EventReportAggregator {
         : 0.0;
 
     final programmeBreakdown = _computeBreakdown(
-      attendedList.map((r) => r.programme.trim()).toList(),
+      attendedList.map((r) => r.programme).toList(),
       attCount,
     );
 
     final branchBreakdown = _computeBreakdown(
-      attendedList.map((r) => r.branch.trim()).toList(),
+      attendedList.map((r) => r.branch).toList(),
       attCount,
     );
 
     final academicYearBreakdown = _computeBreakdown(
-      attendedList.map((r) => r.academicYear.trim()).toList(),
+      attendedList.map((r) => r.academicYear).toList(),
       attCount,
     );
 
@@ -157,6 +207,7 @@ class EventReportAggregator {
         contactEmail: event.contactEmail,
         contactPhone: event.contactPhone,
       ),
+      content: content,
       generatedAt: generatedAt ?? DateTime.now(),
     );
   }
@@ -169,7 +220,7 @@ class EventReportAggregator {
 
     final counts = <String, int>{};
     for (final raw in rawValues) {
-      final key = raw.isEmpty ? 'N/A' : raw;
+      final key = raw.trim().isEmpty ? 'N/A' : raw.trim();
       counts[key] = (counts[key] ?? 0) + 1;
     }
 

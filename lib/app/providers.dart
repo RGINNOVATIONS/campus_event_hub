@@ -29,6 +29,7 @@ import 'package:campus_event_hub/features/notifications/domain/notification_repo
 import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/data/supabase_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reports/data/report_ai_service.dart';
 import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/data/supabase_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review_repository.dart';
@@ -87,6 +88,11 @@ final deviceTokenRepositoryProvider = Provider<DeviceTokenRepository>((ref) {
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
   if (ref.watch(demoModeProvider)) return DemoReviewRepository();
   return SupabaseReviewRepository(Supabase.instance.client);
+});
+
+final reportAiServiceProvider = Provider<ReportAiService>((ref) {
+  if (ref.watch(demoModeProvider)) return DemoReportAiService();
+  return SupabaseReportAiService(Supabase.instance.client);
 });
 
 /// Kept as a single instance for the app's lifetime (not `autoDispose`)

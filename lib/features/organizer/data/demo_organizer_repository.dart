@@ -8,6 +8,7 @@ import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
 import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
+import 'package:campus_event_hub/features/reports/data/report_ai_service.dart';
 import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
 
@@ -269,10 +270,14 @@ class DemoOrganizerRepository implements OrganizerRepository {
     final feedback =
         feedbackRes.valueOrNull ?? EventFeedbackSummary.empty(eventId);
 
+    final contentRes = await DemoReportAiService().getReportContent(eventId);
+    final content = contentRes.valueOrNull;
+
     final report = EventReportAggregator.aggregate(
       event: event,
       registrations: regs,
       feedback: feedback,
+      content: content,
     );
     return Result.ok(report);
   }
