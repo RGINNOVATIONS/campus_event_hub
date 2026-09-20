@@ -40,6 +40,7 @@ class _EventReportPreviewSheetState
 
   bool _isDraftingObjectives = false;
   bool _isDraftingNarrative = false;
+  bool _isPolishingNotes = false;
   bool _isSaving = false;
 
   late String _status;
@@ -47,6 +48,7 @@ class _EventReportPreviewSheetState
 
   String? _objectivesAiError;
   String? _narrativeAiError;
+  String? _notesAiError;
   bool _hasUnsavedEdits = false;
 
   @override
@@ -88,6 +90,63 @@ class _EventReportPreviewSheetState
     _outcomesController.dispose();
     _narrativeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _polishOrganizerNotes() async {
+    final notes = _notesController.text.trim();
+    if (notes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Please enter your organizer notes/account before polishing.'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isPolishingNotes = true;
+      _notesAiError = null;
+    });
+
+    final service = ref.read(reportAiServiceProvider);
+    final res = await service.polishOrganizerNotes(
+      eventId: widget.report.eventId,
+      organizerNotes: notes,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _isPolishingNotes = false);
+
+    res.when(
+      ok: (polished) {
+        setState(() {
+          _notesController.text = polished;
+          _status = 'draft';
+          _hasUnsavedEdits = true;
+          _notesAiError = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Organizer notes polished! You can review, edit, or draft from them.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      },
+      err: (f) {
+        setState(() => _notesAiError = f.message);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'AI polishing failed: ${f.message}. You can edit them manually.'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _draftObjectivesAndOutcomes() async {
@@ -495,7 +554,39 @@ class _EventReportPreviewSheetState
                     const SizedBox(height: AppSpacing.lg),
 
                     // 5. Organizer Notes & Context
-                    _buildSectionHeader('5. Organizer Account & Notes'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildSectionHeader('5. Organizer Account & Notes'),
+                        TextButton.icon(
+                          onPressed: _isPolishingNotes
+                              ? null
+                              : _polishOrganizerNotes,
+                          icon: _isPolishingNotes
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : const Icon(Icons.auto_awesome, size: 16),
+                          label: Text(
+                            _isPolishingNotes
+                                ? 'Polishing...'
+                                : 'Polish with AI',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_notesAiError != null) ...[
+                      _buildInlineErrorBanner(
+                        'AI polishing unavailable: $_notesAiError. You may write or edit the notes manually below.',
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                    ],
                     _buildCard(
                       children: [
                         Text(

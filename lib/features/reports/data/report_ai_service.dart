@@ -17,6 +17,11 @@ abstract class ReportAiService {
 
   Future<Result<String>> draftFeedbackNarrative(String eventId);
 
+  Future<Result<String>> polishOrganizerNotes({
+    required String eventId,
+    required String organizerNotes,
+  });
+
   Future<Result<EventReportContent>> saveReportContent(
     String eventId,
     EventReportContent content,
@@ -128,6 +133,45 @@ class SupabaseReportAiService implements ReportAiService {
   }
 
   @override
+  Future<Result<String>> polishOrganizerNotes({
+    required String eventId,
+    required String organizerNotes,
+  }) async {
+    try {
+      final response = await _client.functions.invoke(
+        'draft-report-content',
+        body: {
+          'mode': 'polish_notes',
+          'event_id': eventId,
+          'organizer_notes': organizerNotes,
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        if (data.containsKey('error')) {
+          return Result.err(ValidationFailure(data['error'].toString()));
+        }
+        return Result.ok(data['polished_notes'] as String? ?? '');
+      }
+      return Result.err(const UnknownFailure(
+          'Invalid response from AI drafting service.'));
+    } on FunctionException catch (fe) {
+      if (fe.status == 401 || fe.status == 403) {
+        return Result.err(const AuthorizationFailure(
+            'Not authorized to draft content for this event.'));
+      }
+      final msg = fe.details is Map && fe.details['error'] != null
+          ? fe.details['error'].toString()
+          : (fe.reasonPhrase ?? 'AI polishing failed.');
+      return Result.err(ValidationFailure(msg));
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'AI polishing service unavailable.'));
+    }
+  }
+
+  @override
   Future<Result<EventReportContent>> saveReportContent(
     String eventId,
     EventReportContent content,
@@ -218,6 +262,24 @@ class DemoReportAiService implements ReportAiService {
   Future<Result<String>> draftFeedbackNarrative(String eventId) async {
     return Result.ok(
       'Overall student feedback was overwhelmingly positive, with attendees commending the structured hands-on sessions, engaging mentors, and high relevance to coursework. Constructive remarks suggested extending future project review intervals to allow deeper evaluation.',
+    );
+  }
+
+  @override
+  Future<Result<String>> polishOrganizerNotes({
+    required String eventId,
+    required String organizerNotes,
+  }) async {
+    final notes = organizerNotes.trim();
+    if (notes.isEmpty) {
+      return Result.err(const ValidationFailure(
+          'Organizer notes are required to polish.'));
+    }
+
+    return Result.ok(
+      'Successfully organized and executed the scheduled event program. '
+      'Key sessions proceeded smoothly with active attendee participation and interactive discussions. '
+      'Summary account: $notes',
     );
   }
 

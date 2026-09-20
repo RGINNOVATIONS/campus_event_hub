@@ -1,7 +1,7 @@
 // supabase/functions/draft-report-content/index.ts
 //
 // AI-assisted drafting of Event Report content (Objectives, Outcomes,
-// and Feedback Narrative) using Google Gemini API.
+// Feedback Narrative, and Organizer Notes Polish) using Google Gemini API.
 //
 // Required secrets:
 //   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY
@@ -31,7 +31,13 @@ interface NarrativeRequest {
   event_id: string;
 }
 
-type DraftRequest = ObjectivesRequest | NarrativeRequest;
+interface PolishNotesRequest {
+  mode: 'polish_notes';
+  event_id: string;
+  organizer_notes: string;
+}
+
+type DraftRequest = ObjectivesRequest | NarrativeRequest | PolishNotesRequest;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -135,10 +141,10 @@ CRITICAL RULES:
 2. Structure and elevate the organizer's raw notes into formal, executive-ready institutional language.
 3. Your output MUST contain two distinct, clearly-headed sections:
 ## Objectives
-(3 to 5 concise, formal bullet points starting with action verbs, stating what the event was intended to achieve)
+(4-6 detailed bullet points, each 1-2 full sentences, written in formal institutional report language suitable for a Dean-level document, starting with action verbs, stating what the event was intended to achieve)
 
 ## Key Outcomes & Impact
-(3 to 5 measurable, results-oriented bullet points reflecting what was accomplished, student engagement, and practical impact based on the organizer's account and attendance numbers)
+(4-6 detailed bullet points, each 1-2 full sentences, written in formal institutional report language suitable for a Dean-level document, reflecting what was accomplished, student engagement, and practical impact based on the organizer's account and attendance numbers)
 
 Event Facts:
 - Title: ${event.title}
@@ -153,7 +159,7 @@ Organizer's Account & Notes:
 "${notes}"
 `;
 
-      const aiText = await callGemini(model, apiKey, prompt);
+      const aiText = await callGemini(model, apiKey, prompt, 2048);
       const parsed = parseObjectivesAndOutcomes(aiText);
 
       return new Response(
@@ -223,7 +229,7 @@ Student Comments:
 ${commentsSnippet}
 `;
 
-      const aiText = await callGemini(model, apiKey, prompt);
+      const aiText = await callGemini(model, apiKey, prompt, 1024);
 
       return new Response(
         JSON.stringify({
@@ -231,9 +237,40 @@ ${commentsSnippet}
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
+    } else if (body.mode === 'polish_notes') {
+      const notes = (body.organizer_notes ?? '').trim();
+      if (!notes) {
+        return new Response(
+          JSON.stringify({ error: 'Organizer notes are required to polish.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const prompt = `You are a writing assistant for academic and administrative college event reports.
+Given the following raw organizer notes, return a grammar-corrected, clearly-written version of the SAME content — same facts, same meaning, just cleaner English.
+
+CRITICAL RULES:
+1. Do not add any new facts, numbers, or claims not present in the original notes — only correct grammar, clarity, and phrasing.
+2. Preserve all specific details, metrics, names, and observations mentioned by the organizer.
+3. Output ONLY the polished text, with no extra conversational remarks, prefixes, or quotation marks.
+
+Raw Organizer Notes:
+"${notes}"
+`;
+
+      const aiText = await callGemini(model, apiKey, prompt, 1024);
+
+      return new Response(
+        JSON.stringify({
+          polished_notes: aiText.trim(),
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     } else {
       return new Response(
-        JSON.stringify({ error: 'Invalid mode. Must be "objectives_and_outcomes" or "feedback_narrative".' }),
+        JSON.stringify({
+          error: 'Invalid mode. Must be "objectives_and_outcomes", "feedback_narrative", or "polish_notes".',
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -245,7 +282,12 @@ ${commentsSnippet}
   }
 });
 
-async function callGemini(model: string, apiKey: string, prompt: string): Promise<string> {
+async function callGemini(
+  model: string,
+  apiKey: string,
+  prompt: string,
+  maxOutputTokens = 1024,
+): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
@@ -259,7 +301,7 @@ async function callGemini(model: string, apiKey: string, prompt: string): Promis
       ],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 1024,
+        maxOutputTokens,
       },
     }),
   });
@@ -308,3 +350,4 @@ function parseObjectivesAndOutcomes(rawText: string): { objectives: string; outc
 
   return { objectives, outcomes };
 }
+

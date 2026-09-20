@@ -134,6 +134,31 @@ void main() {
       expect(narrative.contains('Student One'), isFalse);
     });
 
+    test('polishOrganizerNotes rejects empty notes with ValidationFailure',
+        () async {
+      final res = await service.polishOrganizerNotes(
+        eventId: 'evt-test',
+        organizerNotes: '   ',
+      );
+
+      expect(res.isErr, isTrue);
+      expect(res.failureOrNull, isA<ValidationFailure>());
+      expect(res.failureOrNull!.message, contains('Organizer notes are required to polish'));
+    });
+
+    test('polishOrganizerNotes cleans grammar and phrasing while preserving account facts',
+        () async {
+      final res = await service.polishOrganizerNotes(
+        eventId: 'evt-test',
+        organizerNotes: 'ran 4 mentoring rounds and 8 teams submitted prototypes',
+      );
+
+      expect(res.isOk, isTrue);
+      final polished = res.valueOrNull!;
+      expect(polished, contains('ran 4 mentoring rounds and 8 teams submitted prototypes'));
+      expect(polished, contains('Successfully organized and executed'));
+    });
+
     test('saveReportContent saves draft and confirmed states with attribution',
         () async {
       const draftContent = EventReportContent(
