@@ -224,6 +224,48 @@ void main() {
       expect(savedEdit.confirmedBy, isNull);
       expect(savedEdit.confirmedAt, isNull);
     });
+
+    test('generateReportDocx rejects non-confirmed or non-existent report',
+        () async {
+      // 1. Missing report
+      final resMissing = await service.generateReportDocx('evt-none');
+      expect(resMissing.isErr, isTrue);
+      expect(resMissing.failureOrNull, isA<ValidationFailure>());
+      expect(resMissing.failureOrNull!.message,
+          contains('must be reviewed and confirmed as final'));
+
+      // 2. Draft report (not confirmed)
+      const draftContent = EventReportContent(
+        eventId: 'evt-draft',
+        status: 'draft',
+        objectives: 'Obj',
+        outcomes: 'Out',
+      );
+      await service.saveReportContent('evt-draft', draftContent);
+
+      final resDraft = await service.generateReportDocx('evt-draft');
+      expect(resDraft.isErr, isTrue);
+      expect(resDraft.failureOrNull, isA<ValidationFailure>());
+      expect(resDraft.failureOrNull!.message,
+          contains('must be reviewed and confirmed as final'));
+    });
+
+    test('generateReportDocx returns graceful failure in demo mode when confirmed',
+        () async {
+      const confirmedContent = EventReportContent(
+        eventId: 'evt-confirmed',
+        status: 'confirmed',
+        objectives: 'Obj',
+        outcomes: 'Out',
+      );
+      await service.saveReportContent('evt-confirmed', confirmedContent);
+
+      final res = await service.generateReportDocx('evt-confirmed');
+      expect(res.isErr, isTrue);
+      expect(res.failureOrNull, isA<ValidationFailure>());
+      expect(res.failureOrNull!.message,
+          contains('Report download is only available when connected to the live backend'));
+    });
   });
 
   group('EventReportData Integration with EventReportContent', () {

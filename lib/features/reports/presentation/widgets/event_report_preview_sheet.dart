@@ -42,6 +42,7 @@ class _EventReportPreviewSheetState
   bool _isDraftingNarrative = false;
   bool _isPolishingNotes = false;
   bool _isSaving = false;
+  bool _isDownloadingDocx = false;
 
   late String _status;
   DateTime? _confirmedAt;
@@ -318,6 +319,71 @@ class _EventReportPreviewSheetState
     );
   }
 
+  Future<void> _downloadReportDocx() async {
+    if (_status != 'confirmed') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Report must be confirmed as final before downloading.'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isDownloadingDocx = true);
+
+    final service = ref.read(reportAiServiceProvider);
+    final res = await service.generateReportDocx(widget.report.eventId);
+
+    if (!mounted) return;
+
+    setState(() => _isDownloadingDocx = false);
+
+    await res.when(
+      ok: (signedUrl) async {
+        final downloadService = ref.read(downloadServiceProvider);
+        final safeTitle = widget.report.title
+            .replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')
+            .trim();
+        final fileName =
+            'Event_Report_${safeTitle.isNotEmpty ? safeTitle : widget.report.eventId}.docx';
+
+        final opened = await downloadService.downloadAndOpen(
+          url: signedUrl,
+          suggestedFileName: fileName,
+        );
+
+        if (!mounted) return;
+
+        if (opened) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content:
+                  Text('Downloading and opening official report document...'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open downloaded report document.'),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+      },
+      err: (f) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(f.message),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('EEE, d MMM yyyy · h:mm a');
@@ -403,6 +469,26 @@ class _EventReportPreviewSheetState
                             ],
                           ),
                         ),
+                        if (isConfirmed)
+                          IconButton(
+                            icon: _isDownloadingDocx
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.primary,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.download_for_offline_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                            tooltip: 'Download Word Report (.docx)',
+                            onPressed: _isDownloadingDocx
+                                ? null
+                                : _downloadReportDocx,
+                          ),
                         IconButton(
                           icon: const Icon(Icons.close_rounded),
                           onPressed: () => Navigator.of(context).pop(),
@@ -1028,6 +1114,19 @@ class _EventReportPreviewSheetState
               ),
             ],
           ),
+          if (isConfirmed) ...[
+            const SizedBox(height: AppSpacing.md),
+            AppPrimaryButton(
+              label: _isDownloadingDocx
+                  ? 'Generating Document...'
+                  : 'Download Word Report (.docx)',
+              isLoading: _isDownloadingDocx,
+              onPressed: (_isSaving || _isDownloadingDocx)
+                  ? null
+                  : _downloadReportDocx,
+              icon: const Icon(Icons.description_outlined, size: 18),
+            ),
+          ],
         ],
       ),
     );

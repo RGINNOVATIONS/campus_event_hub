@@ -28,6 +28,8 @@ abstract class ReportAiService {
   );
 
   Future<Result<EventReportContent?>> getReportContent(String eventId);
+
+  Future<Result<String>> generateReportDocx(String eventId);
 }
 
 class SupabaseReportAiService implements ReportAiService {
@@ -214,6 +216,45 @@ class SupabaseReportAiService implements ReportAiService {
           fallbackMessage: 'Could not load report content.'));
     }
   }
+
+  @override
+  Future<Result<String>> generateReportDocx(String eventId) async {
+    try {
+      final response = await _client.functions.invoke(
+        'generate-event-report-docx',
+        body: {
+          'event_id': eventId,
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        if (data.containsKey('error')) {
+          return Result.err(ValidationFailure(data['error'].toString()));
+        }
+        final signedUrl = data['signed_url'] as String?;
+        if (signedUrl == null || signedUrl.isEmpty) {
+          return Result.err(
+              const UnknownFailure('Download URL was not returned.'));
+        }
+        return Result.ok(signedUrl);
+      }
+      return Result.err(const UnknownFailure(
+          'Invalid response from report document service.'));
+    } on FunctionException catch (fe) {
+      if (fe.status == 401 || fe.status == 403) {
+        return Result.err(const AuthorizationFailure(
+            'Not authorized to download report for this event.'));
+      }
+      final msg = fe.details is Map && fe.details['error'] != null
+          ? fe.details['error'].toString()
+          : (fe.reasonPhrase ?? 'Report generation failed.');
+      return Result.err(ValidationFailure(msg));
+    } catch (e) {
+      return Result.err(mapExceptionToFailure(e,
+          fallbackMessage: 'Report generation service unavailable.'));
+    }
+  }
 }
 
 class DemoReportAiService implements ReportAiService {
@@ -309,5 +350,16 @@ class DemoReportAiService implements ReportAiService {
   @override
   Future<Result<EventReportContent?>> getReportContent(String eventId) async {
     return Result.ok(_store[eventId]);
+  }
+
+  @override
+  Future<Result<String>> generateReportDocx(String eventId) async {
+    final report = _store[eventId];
+    if (report == null || !report.isConfirmed) {
+      return Result.err(const ValidationFailure(
+          'Event report must be reviewed and confirmed as final before downloading.'));
+    }
+    return Result.err(const ValidationFailure(
+        'Report download is only available when connected to the live backend.'));
   }
 }
