@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_event_hub/app/theme.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -26,14 +25,6 @@ class EventPosterContainer extends StatelessWidget {
     Widget content;
     if (url == null || url.isEmpty) {
       content = const _PosterFallback();
-    } else if (DemoDataStore.instance.posterBytesByPath.containsKey(url)) {
-      content = Image.memory(
-        DemoDataStore.instance.posterBytesByPath[url]!,
-        fit: fit,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, __, ___) => const _PosterError(),
-      );
     } else if (url.startsWith('assets/')) {
       content = Image.asset(
         url,

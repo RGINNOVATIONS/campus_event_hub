@@ -22,7 +22,6 @@ void main() {
 
     return ProviderScope(
       overrides: [
-        demoModeProvider.overrideWithValue(true),
         authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
         adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
         clubRepositoryProvider.overrideWithValue(FakeClubRepository()),

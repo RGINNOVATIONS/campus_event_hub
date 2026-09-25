@@ -30,10 +30,9 @@ class FirebaseNotificationService implements NotificationService {
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
-    // Never initialize Firebase without real client config — demo mode
-    // (and any environment missing Firebase config) must not crash.
-    if (Env.isDemoMode ||
-        Env.firebaseApiKey.isEmpty ||
+    // Never initialize Firebase without real client config — any
+    // environment missing Firebase config must not crash.
+    if (Env.firebaseApiKey.isEmpty ||
         Env.firebaseProjectId.isEmpty) {
       return;
     }

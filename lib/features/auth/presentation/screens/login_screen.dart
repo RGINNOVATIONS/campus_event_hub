@@ -1,7 +1,5 @@
-import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
 import 'package:campus_event_hub/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,7 +44,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final actionState = ref.watch(authControllerProvider);
-    final isDemo = ref.watch(demoModeProvider);
 
     return Scaffold(
       body: Container(
@@ -83,16 +80,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Demo banner
-                            if (isDemo)
-                              _DemoBanner(onPick: _fillDemo)
-                            else
-                              const SizedBox(height: AppSpacing.xl),
+                            const SizedBox(height: AppSpacing.xl),
 
                             Padding(
-                              padding: EdgeInsets.fromLTRB(
+                              padding: const EdgeInsets.fromLTRB(
                                 AppSpacing.xl,
-                                isDemo ? AppSpacing.md : 0,
+                                0,
                                 AppSpacing.xl,
                                 AppSpacing.xl,
                               ),
@@ -239,11 +232,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  void _fillDemo(String email) {
-    _email.text = email;
-    _password.text = DemoAccounts.demoPassword;
-  }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     await ref
@@ -354,124 +342,6 @@ class _AuthMessage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Demo banner ───────────────────────────────────────────────────────────────
-
-class _DemoBanner extends StatelessWidget {
-  final void Function(String email) onPick;
-
-  const _DemoBanner({required this.onPick});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.warningBg,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(AppRadius.large),
-          topRight: Radius.circular(AppRadius.large),
-        ),
-        border: Border(
-          bottom: BorderSide(color: AppColors.warning.withValues(alpha: 0.2)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.bolt_rounded,
-                color: AppColors.warning,
-                size: 16,
-              ),
-              SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  'Demo mode — tap a role to autofill',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.warning,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _DemoChip(
-                icon: Icons.person_outline,
-                label: 'Student',
-                onTap: () => onPick(DemoAccounts.student.collegeEmail),
-              ),
-              _DemoChip(
-                icon: Icons.groups_outlined,
-                label: 'Organizer',
-                onTap: () => onPick(DemoAccounts.organizer.collegeEmail),
-              ),
-              _DemoChip(
-                icon: Icons.admin_panel_settings_outlined,
-                label: 'Admin',
-                onTap: () => onPick(DemoAccounts.admin.collegeEmail),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DemoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _DemoChip({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.full,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.full,
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: AppColors.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

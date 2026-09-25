@@ -124,12 +124,13 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          demoModeProvider.overrideWithValue(true),
           adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
           eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
           organizerRepositoryProvider
               .overrideWithValue(FakeOrganizerRepository()),
+          notificationRepositoryProvider
+              .overrideWithValue(FakeNotificationRepository()),
           currentProfileProvider
               .overrideWith((ref) => Stream.value(TestAccounts.admin)),
         ],

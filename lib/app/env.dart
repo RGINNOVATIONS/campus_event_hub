@@ -10,7 +10,7 @@ class Env {
     try {
       await dotenv.load(fileName: '.env');
     } catch (_) {
-      // .env is optional in demo mode; fall back to APP_DEMO_MODE=true.
+      // .env may not be present in some test or custom environments.
     }
   }
 
@@ -26,13 +26,4 @@ class Env {
       dotenv.maybeGet('FIREBASE_PROJECT_ID') ?? '';
   static String get firebaseWebVapidKey =>
       dotenv.maybeGet('FIREBASE_WEB_VAPID_KEY') ?? '';
-
-  /// Demo mode is on by default whenever real Supabase credentials are
-  /// absent, and can also be forced via APP_DEMO_MODE regardless of
-  /// whether credentials are present (useful for screenshots/testing).
-  static bool get isDemoMode {
-    final flag = dotenv.maybeGet('APP_DEMO_MODE');
-    if (flag != null) return flag.toLowerCase() == 'true';
-    return supabaseUrl.isEmpty || supabaseAnonKey.isEmpty;
-  }
 }

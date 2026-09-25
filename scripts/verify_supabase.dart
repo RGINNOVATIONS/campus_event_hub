@@ -10,12 +10,10 @@ void main() async {
   final lines = await envFile.readAsLines();
   String? url;
   String? anonKey;
-  bool isDemoMode = false;
   
   for (var line in lines) {
     if (line.startsWith('SUPABASE_URL=')) url = line.split('=')[1];
     if (line.startsWith('SUPABASE_ANON_KEY=')) anonKey = line.split('=')[1];
-    if (line.startsWith('APP_DEMO_MODE=')) isDemoMode = line.split('=')[1].toLowerCase() == 'true';
   }
   
   if (url == null || url.isEmpty || anonKey == null || anonKey.isEmpty) {
@@ -23,13 +21,7 @@ void main() async {
     exit(1);
   }
   
-  print('1. APP_DEMO_MODE is recognized as ${isDemoMode ? "true" : "false"}');
-  if (isDemoMode) {
-    print('ERROR: APP_DEMO_MODE should be false.');
-    exit(1);
-  }
-  
-  print('2. Initializing Supabase client...');
+  print('1. Initializing Supabase client...');
   final client = SupabaseClient(url, anonKey);
   print('Supabase client initialized successfully.');
   

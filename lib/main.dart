@@ -11,12 +11,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Env.load();
 
-  if (!Env.isDemoMode) {
-    // Only touch Supabase when real credentials are configured — demo
-    // mode must run with zero backend calls, per spec section 24.
-    await Supabase.initialize(
-        url: Env.supabaseUrl, publishableKey: Env.supabaseAnonKey);
-  }
+  await Supabase.initialize(
+    url: Env.supabaseUrl,
+    publishableKey: Env.supabaseAnonKey,
+  );
 
   runApp(const ProviderScope(child: CampusEventHubApp()));
 }

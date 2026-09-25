@@ -12,11 +12,10 @@ void main() {
 
   setUp(() => FakeDataStore.instance.resetForTests());
 
-  testWidgets('Campus Event Hub app boots in demo mode', (tester) async {
+  testWidgets('Campus Event Hub app boots', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          demoModeProvider.overrideWithValue(true),
           authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
           eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           notificationServiceProvider.overrideWithValue(FakeNotificationService(

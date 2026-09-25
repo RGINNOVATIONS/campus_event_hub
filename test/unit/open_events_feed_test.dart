@@ -57,8 +57,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            demoModeProvider.overrideWithValue(true),
             eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+            clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+            authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+            notificationRepositoryProvider
+                .overrideWithValue(FakeNotificationRepository()),
           ],
           child: MaterialApp(
             theme: AppTheme.dark,
@@ -82,8 +85,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            demoModeProvider.overrideWithValue(true),
             eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+            notificationRepositoryProvider
+                .overrideWithValue(FakeNotificationRepository()),
           ],
           child: MaterialApp(
             theme: AppTheme.dark,
