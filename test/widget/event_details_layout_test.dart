@@ -4,9 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/events/presentation/screens/event_details_screen.dart';
 
 void main() {
@@ -14,17 +12,17 @@ void main() {
     await Env.load();
   });
 
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets('Event details screen shows sections in the locked order',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.student)),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.student)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -57,13 +55,13 @@ void main() {
 
   testWidgets('persistent action bar shows Enroll and Favourite',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.student)),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.student)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

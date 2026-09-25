@@ -36,3 +36,4 @@ qa_credentials.json
 *.sql
 !supabase/migrations/*.sql
 node_modules/
+deno.lock

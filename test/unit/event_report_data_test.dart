@@ -1,8 +1,6 @@
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -225,14 +223,14 @@ void main() {
     });
   });
 
-  group('DemoOrganizerRepository eventReportData', () {
-    late DemoDataStore store;
-    late DemoOrganizerRepository repo;
+  group('FakeOrganizerRepository eventReportData', () {
+    late FakeDataStore store;
+    late FakeOrganizerRepository repo;
 
     setUp(() {
-      store = DemoDataStore.instance;
+      store = FakeDataStore.instance;
       store.resetForTests();
-      repo = DemoOrganizerRepository();
+      repo = FakeOrganizerRepository();
     });
 
     test('returns ValidationFailure if event is not completed', () async {
@@ -314,14 +312,14 @@ void main() {
     });
   });
 
-  group('DemoAdminRepository eventReportData (Admin Parity)', () {
-    late DemoDataStore store;
-    late DemoAdminRepository adminRepo;
+  group('FakeAdminRepository eventReportData (Admin Parity)', () {
+    late FakeDataStore store;
+    late FakeAdminRepository adminRepo;
 
     setUp(() {
-      store = DemoDataStore.instance;
+      store = FakeDataStore.instance;
       store.resetForTests();
-      adminRepo = DemoAdminRepository();
+      adminRepo = FakeAdminRepository();
     });
 
     test('admin can generate report for completed event', () async {

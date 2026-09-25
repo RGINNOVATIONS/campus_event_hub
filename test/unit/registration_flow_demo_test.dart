@@ -1,16 +1,15 @@
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUp(() {
-    DemoDataStore.instance.resetForTests();
+    FakeDataStore.instance.resetForTests();
   });
 
   group('Demo Mode Student Registration & Auth Flows', () {
     test('registers a B.Tech student with selected branch', () async {
-      final repo = DemoAuthRepository();
+      final repo = FakeAuthRepository();
 
       final result = await repo.register(
         fullName: 'Rohan Sharma',
@@ -38,7 +37,7 @@ void main() {
     });
 
     test('registers a B.Pharm student with N/A branch', () async {
-      final repo = DemoAuthRepository();
+      final repo = FakeAuthRepository();
 
       final result = await repo.register(
         fullName: 'Priya Patel',
@@ -66,15 +65,15 @@ void main() {
     });
 
     test('all 3 seeded demo accounts still log in and have expected profile data', () async {
-      final repo = DemoAuthRepository();
+      final repo = FakeAuthRepository();
 
       // Student login
       var loginRes = await repo.login(
-        email: DemoAccounts.student.collegeEmail,
-        password: DemoAccounts.demoPassword,
+        email: TestAccounts.student.collegeEmail,
+        password: TestAccounts.demoPassword,
       );
       expect(loginRes.isOk, isTrue);
-      expect(repo.currentProfile?.id, DemoAccounts.student.id);
+      expect(repo.currentProfile?.id, TestAccounts.student.id);
       expect(repo.currentProfile?.studentId, 'STU2026041');
       expect(repo.currentProfile?.rollNo, '70012026041');
       expect(repo.currentProfile?.programme, 'B.Tech');
@@ -82,22 +81,22 @@ void main() {
 
       // Organizer login
       loginRes = await repo.login(
-        email: DemoAccounts.organizer.collegeEmail,
-        password: DemoAccounts.demoPassword,
+        email: TestAccounts.organizer.collegeEmail,
+        password: TestAccounts.demoPassword,
       );
       expect(loginRes.isOk, isTrue);
-      expect(repo.currentProfile?.id, DemoAccounts.organizer.id);
+      expect(repo.currentProfile?.id, TestAccounts.organizer.id);
       expect(repo.currentProfile?.studentId, 'EMP0098');
       expect(repo.currentProfile?.programme, 'N/A');
       expect(repo.currentProfile?.branch, 'N/A');
 
       // Admin login
       loginRes = await repo.login(
-        email: DemoAccounts.admin.collegeEmail,
-        password: DemoAccounts.demoPassword,
+        email: TestAccounts.admin.collegeEmail,
+        password: TestAccounts.demoPassword,
       );
       expect(loginRes.isOk, isTrue);
-      expect(repo.currentProfile?.id, DemoAccounts.admin.id);
+      expect(repo.currentProfile?.id, TestAccounts.admin.id);
       expect(repo.currentProfile?.studentId, 'EMP0001');
       expect(repo.currentProfile?.programme, 'N/A');
       expect(repo.currentProfile?.branch, 'N/A');

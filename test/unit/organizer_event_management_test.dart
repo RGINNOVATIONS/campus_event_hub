@@ -1,19 +1,18 @@
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  late DemoDataStore store;
-  late DemoOrganizerRepository repo;
+  late FakeDataStore store;
+  late FakeOrganizerRepository repo;
 
   setUp(() {
-    store = DemoDataStore.instance;
-    repo = DemoOrganizerRepository();
+    store = FakeDataStore.instance;
+    repo = FakeOrganizerRepository();
   });
 
-  group('DemoOrganizerRepository — Event Edit & Postpone', () {
+  group('FakeOrganizerRepository — Event Edit & Postpone', () {
     test('saveDraft creates a new event with poster path', () async {
       final now = DateTime.now();
       final start = now.add(const Duration(days: 10));

@@ -1,8 +1,6 @@
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/services/csv_export_service.dart';
-import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -91,9 +89,9 @@ void main() {
     });
 
     test('Demo Mode: Organizer and Admin can fetch registrations with attended and not-attended records', () async {
-      DemoDataStore.instance.resetForTests();
-      final orgRepo = DemoOrganizerRepository();
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.resetForTests();
+      final orgRepo = FakeOrganizerRepository();
+      final adminRepo = FakeAdminRepository();
 
       final orgResult = await orgRepo.registrationsFor('evt-1');
       expect(orgResult.isOk, isTrue);

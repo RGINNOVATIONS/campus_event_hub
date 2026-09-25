@@ -1,15 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
-  group('DemoClubRepository — club following', () {
+  group('FakeClubRepository — club following', () {
     test('verifiedClubs only returns verified clubs (pending club excluded)',
         () async {
-      final repo = DemoClubRepository();
+      final repo = FakeClubRepository();
       final result = await repo.verifiedClubs();
       final clubs = result.valueOrNull!;
       expect(clubs.every((c) => c.status == ClubStatus.verified), isTrue);
@@ -17,8 +16,8 @@ void main() {
     });
 
     test('follow then unfollow round-trips cleanly', () async {
-      final repo = DemoClubRepository();
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
+      final repo = FakeClubRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
 
       await repo.followClub('club-ecell');
       var followed = (await repo.followedClubIds()).valueOrNull!;
@@ -31,8 +30,8 @@ void main() {
 
     test('following the same club twice enforces one record (set semantics)',
         () async {
-      final repo = DemoClubRepository();
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
+      final repo = FakeClubRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
 
       await repo.followClub('club-ecell');
       await repo.followClub('club-ecell');
@@ -41,7 +40,7 @@ void main() {
     });
 
     test('club details expose upcoming published events only', () async {
-      final repo = DemoClubRepository();
+      final repo = FakeClubRepository();
       final events =
           (await repo.upcomingEventsForClub('club-robotics')).valueOrNull!;
       expect(events.every((e) => e.status.name == 'published'), isTrue);
@@ -49,10 +48,10 @@ void main() {
     });
   });
 
-  group('DemoClubRepository — category following', () {
+  group('FakeClubRepository — category following', () {
     test('follow then unfollow a category round-trips', () async {
-      final repo = DemoClubRepository();
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
+      final repo = FakeClubRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
 
       await repo.followCategory('cat-sports');
       var followed = (await repo.followedCategoryIds()).valueOrNull!;

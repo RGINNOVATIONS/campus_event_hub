@@ -3,24 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/clubs/presentation/screens/notification_preferences_screen.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets('toggling a category switch follows/unfollows it',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
         ],
         child: MaterialApp(
             theme: AppTheme.dark, home: const NotificationPreferencesScreen()),
@@ -45,12 +43,12 @@ void main() {
 
   testWidgets('create event category dropdown opens and updates selection',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

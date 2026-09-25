@@ -3,17 +3,26 @@ import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'fakes/fakes.dart';
 
 void main() {
   setUpAll(() async {
     await Env.load();
   });
 
+  setUp(() => FakeDataStore.instance.resetForTests());
+
   testWidgets('Campus Event Hub app boots in demo mode', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           demoModeProvider.overrideWithValue(true),
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          notificationServiceProvider.overrideWithValue(FakeNotificationService(
+            tokenRepository: FakeDeviceTokenRepository(),
+            currentUserId: () => null,
+          )),
         ],
         child: const CampusEventHubApp(),
       ),

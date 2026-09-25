@@ -2,17 +2,10 @@ import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/router.dart';
 import 'package:campus_event_hub/app/theme.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
 import 'package:campus_event_hub/features/auth/domain/profile.dart';
-import 'package:campus_event_hub/features/certificates/data/demo_certificate_repository.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
 import 'package:campus_event_hub/features/clubs/presentation/screens/clubs_screen.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
-import 'package:campus_event_hub/features/notifications/data/demo_notification_repository.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,24 +15,24 @@ void main() {
     await Env.load();
   });
 
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   Widget buildAppWithProfile(Profile profile) {
-    DemoDataStore.instance.currentUserId = profile.id;
+    FakeDataStore.instance.currentUserId = profile.id;
 
     return ProviderScope(
       overrides: [
         demoModeProvider.overrideWithValue(true),
-        authRepositoryProvider.overrideWithValue(DemoAuthRepository()),
-        adminRepositoryProvider.overrideWithValue(DemoAdminRepository()),
-        clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-        eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
+        clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+        eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
         certificateRepositoryProvider
-            .overrideWithValue(DemoCertificateRepository()),
+            .overrideWithValue(FakeCertificateRepository()),
         organizerRepositoryProvider
-            .overrideWithValue(DemoOrganizerRepository()),
+            .overrideWithValue(FakeOrganizerRepository()),
         notificationRepositoryProvider
-            .overrideWithValue(DemoNotificationRepository()),
+            .overrideWithValue(FakeNotificationRepository()),
         currentProfileProvider.overrideWith((ref) => Stream.value(profile)),
       ],
       child: Consumer(

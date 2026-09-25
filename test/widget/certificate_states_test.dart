@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/result/result.dart';
-import 'package:campus_event_hub/features/certificates/data/demo_certificate_repository.dart';
 import 'package:campus_event_hub/features/certificates/domain/certificate_repository.dart';
 import 'package:campus_event_hub/features/certificates/presentation/screens/my_certificates_screen.dart';
 
@@ -22,7 +21,7 @@ class _EmptyCertificateRepo implements CertificateRepository {
 }
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets('shows "Certificate not issued yet" when the student has none',
       (tester) async {
@@ -45,7 +44,7 @@ void main() {
       ProviderScope(
         overrides: [
           certificateRepositoryProvider
-              .overrideWithValue(DemoCertificateRepository())
+              .overrideWithValue(FakeCertificateRepository())
         ],
         child: MaterialApp(
             theme: AppTheme.dark, home: const MyCertificatesScreen()),

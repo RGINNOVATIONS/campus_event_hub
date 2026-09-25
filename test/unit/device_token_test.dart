@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/services/device_token_repository.dart';
 
 void main() {
   group('DeviceTokenRepository — lifecycle', () {
     test('registerToken makes the token retrievable for that user', () async {
-      final repo = DemoDeviceTokenRepository();
+      final repo = FakeDeviceTokenRepository();
       await repo.registerToken(
           userId: 'u1', fcmToken: 'tok-a', platform: DevicePlatform.android);
       final tokens = (await repo.tokensForUser('u1')).valueOrNull!;
@@ -13,7 +13,7 @@ void main() {
     });
 
     test('refreshToken replaces the old token with the new one', () async {
-      final repo = DemoDeviceTokenRepository();
+      final repo = FakeDeviceTokenRepository();
       await repo.registerToken(
           userId: 'u1', fcmToken: 'tok-old', platform: DevicePlatform.android);
       await repo.refreshToken(
@@ -28,7 +28,7 @@ void main() {
     });
 
     test('removeToken clears it from the user\'s active tokens', () async {
-      final repo = DemoDeviceTokenRepository();
+      final repo = FakeDeviceTokenRepository();
       await repo.registerToken(
           userId: 'u1', fcmToken: 'tok-a', platform: DevicePlatform.android);
       await repo.removeToken('tok-a');
@@ -39,7 +39,7 @@ void main() {
     test(
         're-registering the same token for the same user does not duplicate it',
         () async {
-      final repo = DemoDeviceTokenRepository();
+      final repo = FakeDeviceTokenRepository();
       await repo.registerToken(
           userId: 'u1', fcmToken: 'tok-a', platform: DevicePlatform.android);
       await repo.registerToken(
@@ -51,7 +51,7 @@ void main() {
     test(
         'registering the same token under a new user reassigns ownership (no duplicate token rows)',
         () async {
-      final repo = DemoDeviceTokenRepository();
+      final repo = FakeDeviceTokenRepository();
       await repo.registerToken(
           userId: 'u1',
           fcmToken: 'shared-tok',

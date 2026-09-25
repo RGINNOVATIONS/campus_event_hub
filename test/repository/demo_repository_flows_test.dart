@@ -7,22 +7,17 @@
 // DemoDataStore, so a full enrol -> scan -> issue-certificate flow can
 // be tested end-to-end here even though no server was involved.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/attendance/domain/scan_result.dart';
-import 'package:campus_event_hub/features/certificates/data/demo_certificate_repository.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
-import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
 import 'package:campus_event_hub/core/services/device_token_repository.dart';
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   test('enrolment flow: enrol, then see it in myEnrolments with a QR token',
       () async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeEventRepository();
 
     final enrolResult = await repo.enrol('evt-3');
     expect(enrolResult.isOk, isTrue);
@@ -33,16 +28,16 @@ void main() {
   });
 
   test('enrolling twice in the same event is rejected', () async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeEventRepository();
     await repo.enrol('evt-3');
     final second = await repo.enrol('evt-3');
     expect(second.isErr, isTrue);
   });
 
   test('favourite toggle flow: add then remove persists correctly', () async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeEventRepository();
 
     await repo.addFavourite('evt-3');
     var favs = (await repo.favouriteEventIds()).valueOrNull!;
@@ -54,8 +49,8 @@ void main() {
   });
 
   test('club and category follow flow', () async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoClubRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeClubRepository();
 
     await repo.followClub('club-ecell');
     await repo.followCategory('cat-sports');
@@ -70,8 +65,8 @@ void main() {
   test(
       'attendance marking: valid scan succeeds, then the same token is rejected as a duplicate',
       () async {
-    final organizerRepo = DemoOrganizerRepository();
-    DemoDataStore.instance.currentUserId = 'demo-organizer-1';
+    final organizerRepo = FakeOrganizerRepository();
+    FakeDataStore.instance.currentUserId = 'demo-organizer-1';
 
     // evt-1 has a pre-seeded registration for demo-student-1 with a known token.
     final first = await organizerRepo.scanAttendance(
@@ -88,7 +83,7 @@ void main() {
   });
 
   test('an invalid QR token is rejected', () async {
-    final organizerRepo = DemoOrganizerRepository();
+    final organizerRepo = FakeOrganizerRepository();
     final result = await organizerRepo.scanAttendance(
         eventId: 'evt-1', qrToken: 'not-a-real-token');
     expect(result.valueOrNull, ScanOutcome.invalidToken);
@@ -97,8 +92,8 @@ void main() {
   test(
       'certificate retrieval returns the seeded certificate for the demo student',
       () async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoCertificateRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeCertificateRepository();
     final certs = (await repo.myCertificates()).valueOrNull!;
     expect(certs.any((c) => c.eventTitle == 'Winter Hackathon 2025'), isTrue);
   });
@@ -106,7 +101,7 @@ void main() {
   test(
       'certificate verification by code returns valid for a real code, invalid otherwise',
       () async {
-    final repo = DemoCertificateRepository();
+    final repo = FakeCertificateRepository();
     final valid = (await repo.verifyByCode('CP2025WH0421')).valueOrNull!;
     expect(valid.isValid, isTrue);
 
@@ -115,7 +110,7 @@ void main() {
   });
 
   test('device-token registration and removal round-trip', () async {
-    final tokenRepo = DemoDeviceTokenRepository();
+    final tokenRepo = FakeDeviceTokenRepository();
     await tokenRepo.registerToken(
       userId: 'demo-student-1',
       fcmToken: 'integration-test-token',
@@ -132,8 +127,8 @@ void main() {
   test(
       'issuing certificates only credits attended students, and is idempotent on re-run',
       () async {
-    final organizerRepo = DemoOrganizerRepository();
-    DemoDataStore.instance.currentUserId = 'demo-organizer-1';
+    final organizerRepo = FakeOrganizerRepository();
+    FakeDataStore.instance.currentUserId = 'demo-organizer-1';
 
     // evt-past-hackathon is seeded as completed with one attended student
     // who already has a certificate in the seed data — issuing again
@@ -143,8 +138,8 @@ void main() {
     expect(firstRun.valueOrNull, 0,
         reason: 'already issued in seed data — must not double-issue');
 
-    final certRepo = DemoCertificateRepository();
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    final certRepo = FakeCertificateRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
     final certs = (await certRepo.myCertificates()).valueOrNull!;
     expect(certs.where((c) => c.eventId == 'evt-past-hackathon').length, 1);
   });

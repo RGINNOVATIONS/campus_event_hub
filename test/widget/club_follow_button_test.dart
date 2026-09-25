@@ -4,10 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/clubs/presentation/screens/club_details_screen.dart';
 
 void main() {
@@ -15,17 +12,17 @@ void main() {
     await Env.load();
   });
 
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets('Follow button toggles to Following and back', (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.student)),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.student)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -54,14 +51,14 @@ void main() {
   testWidgets('Already-followed club shows Following immediately',
       (tester) async {
     // club-cultural is followed by demo-student-1 in the seed data.
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.student)),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.student)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -76,14 +73,14 @@ void main() {
   });
 
   testWidgets('Organizer does not see Follow button', (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-org-1';
+    FakeDataStore.instance.currentUserId = 'demo-org-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.organizer)),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.organizer)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -99,14 +96,14 @@ void main() {
   });
 
   testWidgets('Administrator does not see Follow button', (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-admin';
+    FakeDataStore.instance.currentUserId = 'demo-admin';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.admin)),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.admin)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

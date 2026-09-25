@@ -1,9 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/env.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 
 void main() {
@@ -12,7 +11,7 @@ void main() {
   });
 
   setUp(() {
-    DemoDataStore.instance.resetForTests();
+    FakeDataStore.instance.resetForTests();
   });
 
   group('EventGuest Model', () {
@@ -76,8 +75,8 @@ void main() {
   });
 
   group('EventModel guests integration', () {
-    test('evt-1 in DemoDataStore is seeded with 2 guests', () {
-      final evt = DemoDataStore.instance.events.firstWhere((e) => e.id == 'evt-1');
+    test('evt-1 in FakeDataStore is seeded with 2 guests', () {
+      final evt = FakeDataStore.instance.events.firstWhere((e) => e.id == 'evt-1');
       expect(evt.guests.length, 2);
       expect(evt.guests[0].name, 'Dr. Aris Thorne');
       expect(evt.guests[0].designation, 'Lead Robotics Researcher');
@@ -111,7 +110,7 @@ void main() {
     });
 
     test('EventModel copyWith preserves and updates guests', () {
-      final evt = DemoDataStore.instance.events.firstWhere((e) => e.id == 'evt-1');
+      final evt = FakeDataStore.instance.events.firstWhere((e) => e.id == 'evt-1');
       expect(evt.guests.length, 2);
 
       final withNewGuests = evt.copyWith(guests: const [
@@ -126,9 +125,9 @@ void main() {
     });
   });
 
-  group('DemoOrganizerRepository guests roundtrip', () {
+  group('FakeOrganizerRepository guests roundtrip', () {
     test('saves draft with guests and updates them', () async {
-      final repo = DemoOrganizerRepository();
+      final repo = FakeOrganizerRepository();
       final now = DateTime.now().add(const Duration(days: 2));
 
       final createResult = await repo.saveDraft(DraftEventInput(
@@ -193,14 +192,14 @@ void main() {
       expect(updatedEvent.guests.length, 2);
       expect(updatedEvent.guests[1].name, 'Dr. Yann LeCun');
 
-      // Verify the event in DemoDataStore is updated
-      final inStore = DemoDataStore.instance.events.firstWhere((e) => e.id == createdEvent.id);
+      // Verify the event in FakeDataStore is updated
+      final inStore = FakeDataStore.instance.events.firstWhere((e) => e.id == createdEvent.id);
       expect(inStore.guests.length, 2);
       expect(inStore.guests[1].organization, 'Meta AI');
     });
 
     test('editing only the venue preserves the 2 guests', () async {
-      final repo = DemoOrganizerRepository();
+      final repo = FakeOrganizerRepository();
       final now = DateTime.now().add(const Duration(days: 2));
 
       // 1. Create an event with 2 guests
@@ -253,7 +252,7 @@ void main() {
       expect(updated.guests[0].name, 'Guest 1');
       expect(updated.guests[1].name, 'Guest 2');
 
-      final inStore = DemoDataStore.instance.events.firstWhere((e) => e.id == created.id);
+      final inStore = FakeDataStore.instance.events.firstWhere((e) => e.id == created.id);
       expect(inStore.venue, 'Updated Hall 5');
       expect(inStore.guests.length, 2);
     });

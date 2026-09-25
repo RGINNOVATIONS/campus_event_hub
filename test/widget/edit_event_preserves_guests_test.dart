@@ -4,10 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/create_event_screen.dart';
 
@@ -17,14 +15,14 @@ void main() {
   });
 
   setUp(() {
-    DemoDataStore.instance.resetForTests();
+    FakeDataStore.instance.resetForTests();
   });
 
   testWidgets(
       'create event with 2 guests, edit ONLY venue in CreateEventScreen, assert guests preserved',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-    final repo = DemoOrganizerRepository();
+    FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+    final repo = FakeOrganizerRepository();
     final now = DateTime.now().add(const Duration(days: 5));
 
     // 1. Create an initial event with 2 structured guests
@@ -64,7 +62,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           organizerRepositoryProvider.overrideWithValue(repo),
         ],
         child: MaterialApp(
@@ -98,7 +96,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 6. Retrieve the event from DemoDataStore and verify guests are STILL PRESENT
-    final persisted = DemoDataStore.instance.events
+    final persisted = FakeDataStore.instance.events
         .firstWhere((e) => e.id == createdEvent.id);
     expect(persisted.venue, 'Grand Hall - Zone B',
         reason: 'Venue was edited and updated');

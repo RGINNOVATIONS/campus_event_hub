@@ -1,18 +1,17 @@
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
-import 'package:campus_event_hub/features/reviews/data/demo_review_repository.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  late DemoDataStore store;
-  late DemoReviewRepository repo;
+  late FakeDataStore store;
+  late FakeReviewRepository repo;
 
   setUp(() {
-    store = DemoDataStore.instance;
+    store = FakeDataStore.instance;
     store.resetForTests();
-    repo = DemoReviewRepository();
+    repo = FakeReviewRepository();
   });
 
   group('Reviews Domain & Calculations', () {
@@ -70,7 +69,7 @@ void main() {
     });
   });
 
-  group('DemoReviewRepository Attendance-Gate Enforcement', () {
+  group('FakeReviewRepository Attendance-Gate Enforcement', () {
     test('attended student can submit and edit review (upsert)', () async {
       store.currentUserId = 'demo-student-1';
 

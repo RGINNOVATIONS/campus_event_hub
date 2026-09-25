@@ -1,15 +1,10 @@
 import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/widgets/widgets.dart';
-import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
 import 'package:campus_event_hub/features/admin/presentation/screens/admin_screens.dart';
 import 'package:campus_event_hub/features/admin/presentation/screens/admin_shell.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
-import 'package:campus_event_hub/features/clubs/data/demo_club_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
 import 'package:campus_event_hub/features/organizer/presentation/screens/event_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +15,7 @@ void main() {
     await Env.load();
   });
 
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets(
       'Admin can tap pending event card to open EventManagementScreen in read-only mode',
@@ -28,10 +23,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          adminRepositoryProvider.overrideWithValue(DemoAdminRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+          adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           organizerRepositoryProvider
-              .overrideWithValue(DemoOrganizerRepository()),
+              .overrideWithValue(FakeOrganizerRepository()),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -71,10 +66,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          adminRepositoryProvider.overrideWithValue(DemoAdminRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
+          adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           organizerRepositoryProvider
-              .overrideWithValue(DemoOrganizerRepository()),
+              .overrideWithValue(FakeOrganizerRepository()),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -107,7 +102,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          adminRepositoryProvider.overrideWithValue(DemoAdminRepository()),
+          adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -124,19 +119,19 @@ void main() {
   testWidgets(
       'AdminShell renders 5 destinations and NO profile in bottom nav',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-admin-1';
+    FakeDataStore.instance.currentUserId = 'demo-admin-1';
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           demoModeProvider.overrideWithValue(true),
-          adminRepositoryProvider.overrideWithValue(DemoAdminRepository()),
-          eventRepositoryProvider.overrideWithValue(DemoEventRepository()),
-          clubRepositoryProvider.overrideWithValue(DemoClubRepository()),
+          adminRepositoryProvider.overrideWithValue(FakeAdminRepository()),
+          eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
+          clubRepositoryProvider.overrideWithValue(FakeClubRepository()),
           organizerRepositoryProvider
-              .overrideWithValue(DemoOrganizerRepository()),
+              .overrideWithValue(FakeOrganizerRepository()),
           currentProfileProvider
-              .overrideWith((ref) => Stream.value(DemoAccounts.admin)),
+              .overrideWith((ref) => Stream.value(TestAccounts.admin)),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

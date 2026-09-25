@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_hub/core/services/demo_device_token_repository.dart';
-import 'package:campus_event_hub/core/services/demo_notification_service.dart';
+import '../fakes/fakes.dart';
 
 // NOTE ON COVERAGE: FirebaseNotificationService's "missing Firebase
 // configuration" and "permission denied" branches are guarded by plain
@@ -12,10 +11,10 @@ import 'package:campus_event_hub/core/services/demo_notification_service.dart';
 // below exercises the same DeviceTokenRepository contract without ever
 // touching Firebase, which is what demo mode actually runs.
 void main() {
-  group('DemoNotificationService — device-token lifecycle', () {
+  group('FakeNotificationService — device-token lifecycle', () {
     test('registerDeviceToken is a no-op when no user is signed in', () async {
-      final tokenRepo = DemoDeviceTokenRepository();
-      final service = DemoNotificationService(
+      final tokenRepo = FakeDeviceTokenRepository();
+      final service = FakeNotificationService(
           tokenRepository: tokenRepo, currentUserId: () => null);
       await service.registerDeviceToken();
       final tokens =
@@ -25,8 +24,8 @@ void main() {
 
     test('registerDeviceToken registers a token once a user is signed in',
         () async {
-      final tokenRepo = DemoDeviceTokenRepository();
-      final service = DemoNotificationService(
+      final tokenRepo = FakeDeviceTokenRepository();
+      final service = FakeNotificationService(
           tokenRepository: tokenRepo, currentUserId: () => 'demo-student-1');
       await service.registerDeviceToken();
       final tokens =
@@ -36,8 +35,8 @@ void main() {
 
     test('unregisterDeviceToken removes the previously registered token',
         () async {
-      final tokenRepo = DemoDeviceTokenRepository();
-      final service = DemoNotificationService(
+      final tokenRepo = FakeDeviceTokenRepository();
+      final service = FakeNotificationService(
           tokenRepository: tokenRepo, currentUserId: () => 'demo-student-1');
       await service.registerDeviceToken();
       await service.unregisterDeviceToken();

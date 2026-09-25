@@ -1,18 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/admin/data/demo_admin_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
-import 'package:campus_event_hub/features/organizer/data/demo_organizer_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/organizer/domain/organizer_repository.dart';
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   group('End-to-End Event Lifecycle Connectivity Tests', () {
     test('1. Organizer creates draft (status = draft, correct club_id)', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Lifecycle Test Event',
@@ -39,8 +36,8 @@ void main() {
     });
 
     test('2. Organizer submits event for approval (status = pending_approval)', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Pending Test Event',
@@ -67,8 +64,8 @@ void main() {
     });
 
     test('3. Organizer cannot directly publish event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Self-Publish Attempt',
@@ -90,8 +87,8 @@ void main() {
     });
 
     test('4. Admin retrieves pending event created by organizer', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Admin Visibility Test Event',
@@ -112,8 +109,8 @@ void main() {
       await organizerRepo.submitForApproval(draft.id);
 
       // Switch context to Admin
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
 
       final pendingResult = await adminRepo.pendingEvents();
       expect(pendingResult.isOk, isTrue);
@@ -123,8 +120,8 @@ void main() {
     });
 
     test('5. Non-admin cannot approve event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Unauthorized Approval Test',
@@ -144,15 +141,15 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       await organizerRepo.submitForApproval(draft.id);
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final adminRepo = FakeAdminRepository();
       final approveResult = await adminRepo.approveEvent(draft.id);
       expect(approveResult.isOk, isTrue);
     });
 
     test('6. Admin approves event (status = published)', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Approval Execution Event',
@@ -172,8 +169,8 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       await organizerRepo.submitForApproval(draft.id);
 
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
       final approveResult = await adminRepo.approveEvent(draft.id);
       expect(approveResult.isOk, isTrue);
 
@@ -182,8 +179,8 @@ void main() {
     });
 
     test('7. Student queries published events (approved event appears with matching ID)', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Student Feed Target Event',
@@ -204,13 +201,13 @@ void main() {
       final eventIdCreated = draft.id;
       await organizerRepo.submitForApproval(eventIdCreated);
 
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
       await adminRepo.approveEvent(eventIdCreated);
 
       // Student checks home feed
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentEventRepo = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentEventRepo = FakeEventRepository();
 
       final upcomingResult = await studentEventRepo.upcomingPublishedEvents();
       expect(upcomingResult.isOk, isTrue);
@@ -223,8 +220,8 @@ void main() {
     });
 
     test('8. Student cannot see pending event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Hidden Pending Event',
@@ -244,16 +241,16 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       await organizerRepo.submitForApproval(draft.id);
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentEventRepo = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentEventRepo = FakeEventRepository();
       final upcoming = (await studentEventRepo.upcomingPublishedEvents()).valueOrNull!;
 
       expect(upcoming.any((e) => e.id == draft.id), isFalse);
     });
 
     test('9. Student cannot see draft event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Hidden Draft Event',
@@ -272,16 +269,16 @@ void main() {
 
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentEventRepo = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentEventRepo = FakeEventRepository();
       final upcoming = (await studentEventRepo.upcomingPublishedEvents()).valueOrNull!;
 
       expect(upcoming.any((e) => e.id == draft.id), isFalse);
     });
 
     test('10. Rejected event excluded from student feed', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Rejected Event Test',
@@ -301,19 +298,19 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       await organizerRepo.submitForApproval(draft.id);
 
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
       await adminRepo.rejectEvent(draft.id, 'Incomplete guidelines');
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentEventRepo = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentEventRepo = FakeEventRepository();
       final upcoming = (await studentEventRepo.upcomingPublishedEvents()).valueOrNull!;
 
       expect(upcoming.any((e) => e.id == draft.id), isFalse);
     });
 
     test('11. Published event with verified club is visible', () async {
-      final studentEventRepo = DemoEventRepository();
+      final studentEventRepo = FakeEventRepository();
       final upcoming = (await studentEventRepo.upcomingPublishedEvents()).valueOrNull!;
 
       expect(upcoming.isNotEmpty, isTrue);
@@ -323,7 +320,7 @@ void main() {
     });
 
     test('12. Published event mapping works gracefully', () async {
-      final studentEventRepo = DemoEventRepository();
+      final studentEventRepo = FakeEventRepository();
       final upcoming = (await studentEventRepo.upcomingPublishedEvents()).valueOrNull!;
 
       for (final event in upcoming) {
@@ -333,8 +330,8 @@ void main() {
     });
 
     test('13. Organizer from Club A cannot edit Club B event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1'; // Club ACM
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1'; // Club ACM
+      final organizerRepo = FakeOrganizerRepository();
 
       final myEvents = (await organizerRepo.myClubEvents()).valueOrNull!;
       for (final event in myEvents) {
@@ -343,8 +340,8 @@ void main() {
     });
 
     test('14. Admin approval updates status cleanly', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Status Transition Verification',
@@ -364,15 +361,15 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       await organizerRepo.submitForApproval(draft.id);
 
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
       final result = await adminRepo.approveEvent(draft.id);
       expect(result.isOk, isTrue);
     });
 
     test('15. Student refresh retrieves newly published event', () async {
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
-      final organizerRepo = DemoOrganizerRepository();
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
+      final organizerRepo = FakeOrganizerRepository();
 
       final payload = DraftEventInput(
         title: 'Refresh Test Event',
@@ -392,20 +389,20 @@ void main() {
       final draft = (await organizerRepo.saveDraft(payload)).valueOrNull!;
       final targetId = draft.id;
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentRepoBefore = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentRepoBefore = FakeEventRepository();
       var upcoming = (await studentRepoBefore.upcomingPublishedEvents()).valueOrNull!;
       expect(upcoming.any((e) => e.id == targetId), isFalse);
 
-      DemoDataStore.instance.currentUserId = 'demo-organizer-1';
+      FakeDataStore.instance.currentUserId = 'demo-organizer-1';
       await organizerRepo.submitForApproval(targetId);
 
-      DemoDataStore.instance.currentUserId = 'demo-admin-1';
-      final adminRepo = DemoAdminRepository();
+      FakeDataStore.instance.currentUserId = 'demo-admin-1';
+      final adminRepo = FakeAdminRepository();
       await adminRepo.approveEvent(targetId);
 
-      DemoDataStore.instance.currentUserId = 'demo-student-1';
-      final studentRepoAfter = DemoEventRepository();
+      FakeDataStore.instance.currentUserId = 'demo-student-1';
+      final studentRepoAfter = FakeEventRepository();
       upcoming = (await studentRepoAfter.upcomingPublishedEvents()).valueOrNull!;
       expect(upcoming.any((e) => e.id == targetId), isTrue);
     });

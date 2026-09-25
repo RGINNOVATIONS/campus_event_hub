@@ -3,22 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/theme.dart';
 import 'package:campus_event_hub/app/providers.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
-import 'package:campus_event_hub/features/auth/data/demo_auth_repository.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/events/presentation/screens/event_details_screen.dart';
 import 'package:campus_event_hub/features/events/presentation/controllers/events_controllers.dart';
 
 void main() {
-  setUp(() => DemoDataStore.instance.resetForTests());
+  setUp(() => FakeDataStore.instance.resetForTests());
 
   testWidgets('Enroll button becomes View QR once the user is enrolled',
       (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-student-1';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-student-1';
+    final repo = FakeEventRepository();
     final container = ProviderContainer(overrides: [
       eventRepositoryProvider.overrideWithValue(repo),
-      currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.student)),
+      currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.student)),
     ]);
     addTearDown(container.dispose);
 
@@ -47,11 +45,11 @@ void main() {
   });
 
   testWidgets('Organizer does not see Enroll button', (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-org-1';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-org-1';
+    final repo = FakeEventRepository();
     final container = ProviderContainer(overrides: [
       eventRepositoryProvider.overrideWithValue(repo),
-      currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.organizer)),
+      currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.organizer)),
     ]);
     addTearDown(container.dispose);
 
@@ -72,11 +70,11 @@ void main() {
   });
 
   testWidgets('Administrator does not see Enroll button', (tester) async {
-    DemoDataStore.instance.currentUserId = 'demo-admin';
-    final repo = DemoEventRepository();
+    FakeDataStore.instance.currentUserId = 'demo-admin';
+    final repo = FakeEventRepository();
     final container = ProviderContainer(overrides: [
       eventRepositoryProvider.overrideWithValue(repo),
-      currentProfileProvider.overrideWith((ref) => Stream.value(DemoAccounts.admin)),
+      currentProfileProvider.overrideWith((ref) => Stream.value(TestAccounts.admin)),
     ]);
     addTearDown(container.dispose);
 

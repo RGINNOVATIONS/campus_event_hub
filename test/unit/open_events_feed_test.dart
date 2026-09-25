@@ -4,9 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_event_hub/app/env.dart';
 import 'package:campus_event_hub/app/providers.dart';
 import 'package:campus_event_hub/app/theme.dart';
-import 'package:campus_event_hub/core/demo/demo_data_store.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/core/domain/enums.dart';
-import 'package:campus_event_hub/features/events/data/demo_event_repository.dart';
 import 'package:campus_event_hub/features/events/presentation/screens/home_screen.dart';
 import 'package:campus_event_hub/features/enrolments/presentation/screens/my_events_screen.dart';
 
@@ -16,12 +15,12 @@ void main() {
   });
 
   setUp(() {
-    DemoDataStore.instance.resetForTests();
+    FakeDataStore.instance.resetForTests();
   });
 
   group('Open Published Events vs Upcoming Events', () {
-    test('DemoEventRepository openPublishedEvents filters out past-deadline events', () async {
-      final repo = DemoEventRepository();
+    test('FakeEventRepository openPublishedEvents filters out past-deadline events', () async {
+      final repo = FakeEventRepository();
       
       final openResult = await repo.openPublishedEvents();
       expect(openResult.isOk, isTrue);
@@ -59,6 +58,7 @@ void main() {
         ProviderScope(
           overrides: [
             demoModeProvider.overrideWithValue(true),
+            eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           ],
           child: MaterialApp(
             theme: AppTheme.dark,
@@ -83,6 +83,7 @@ void main() {
         ProviderScope(
           overrides: [
             demoModeProvider.overrideWithValue(true),
+            eventRepositoryProvider.overrideWithValue(FakeEventRepository()),
           ],
           child: MaterialApp(
             theme: AppTheme.dark,

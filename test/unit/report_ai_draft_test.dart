@@ -1,7 +1,7 @@
 import 'package:campus_event_hub/core/domain/enums.dart';
 import 'package:campus_event_hub/core/errors/app_failure.dart';
 import 'package:campus_event_hub/features/events/domain/event.dart';
-import 'package:campus_event_hub/features/reports/data/report_ai_service.dart';
+import '../fakes/fakes.dart';
 import 'package:campus_event_hub/features/reports/domain/event_report_ai_content.dart';
 import 'package:campus_event_hub/features/reports/domain/event_report_data.dart';
 import 'package:campus_event_hub/features/reviews/domain/review.dart';
@@ -81,12 +81,12 @@ void main() {
     });
   });
 
-  group('DemoReportAiService Tests', () {
-    late DemoReportAiService service;
+  group('FakeReportAiService Tests', () {
+    late FakeReportAiService service;
 
     setUp(() {
-      DemoReportAiService.reset();
-      service = DemoReportAiService();
+      FakeReportAiService.reset();
+      service = FakeReportAiService();
     });
 
     test('draftObjectivesAndOutcomes rejects empty notes with ValidationFailure',
