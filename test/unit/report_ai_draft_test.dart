@@ -320,5 +320,64 @@ void main() {
       expect(report.feedback.averageRating, 4.8);
       expect(report.feedback.reviewCount, 5);
     });
+
+    test('EventReportAggregator preserves Round 1 event.guests in aggregated report for docx generation', () {
+      final event = EventModel(
+        id: 'evt-guests',
+        clubId: 'club-1',
+        clubName: 'Robotics Club',
+        categoryId: 'cat-1',
+        categoryName: 'Tech',
+        title: 'Robotics Summit',
+        shortDescription: 'Summit',
+        fullDescription: 'Full Summit',
+        venue: 'Auditorium',
+        startAt: DateTime(2026, 3, 10, 10, 0),
+        endAt: DateTime(2026, 3, 10, 16, 0),
+        registrationDeadline: DateTime(2026, 3, 9),
+        eligibility: 'All',
+        rules: 'Rules',
+        contactName: 'Jane Organizer',
+        contactEmail: 'jane@college.edu',
+        status: EventStatus.completed,
+        guests: const [
+          EventGuest(
+            name: 'Dr. Jane Smith',
+            designation: 'Director of AI',
+            organization: 'RoboTech Labs',
+          ),
+          EventGuest(
+            name: 'Mr. Rajesh Verma',
+            designation: 'Principal Architect',
+            organization: 'Intel AI',
+          ),
+        ],
+      );
+
+      final report = EventReportAggregator.aggregate(
+        event: event,
+        registrations: [],
+        feedback: const EventFeedbackSummary(
+          eventId: 'evt-guests',
+          averageRating: 5.0,
+          reviewCount: 1,
+          ratingDistribution: {5: 1},
+          reviews: [],
+        ),
+        content: const EventReportContent(
+          eventId: 'evt-guests',
+          status: 'confirmed',
+        ),
+      );
+
+      expect(report.guests.length, 2);
+      expect(report.guests[0].name, 'Dr. Jane Smith');
+      expect(report.guests[0].designation, 'Director of AI');
+      expect(report.guests[0].organization, 'RoboTech Labs');
+      expect(report.guests[1].name, 'Mr. Rajesh Verma');
+      expect(report.guests[1].designation, 'Principal Architect');
+      expect(report.guests[1].organization, 'Intel AI');
+    });
   });
 }
+
